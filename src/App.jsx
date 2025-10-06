@@ -32,6 +32,9 @@ import FacultyList from "./pages/Faculty/FacultyList";
 import AddFaculty from "./pages/Faculty/AddFaculty";
 import EditFaculty from "./pages/Faculty/EditFaculty";
 import PlacementsDashboard from "./pages/Placements/PlacementsDashboard";
+import NotificationsList  from "./pages/Notifications/NotificationsList.jsx";
+import AddNotification from "./pages/Notifications/AddNotification.jsx";
+import EditNotification from "./pages/Notifications/NotificationsList.jsx";
 
 function App() {
   return (
@@ -67,6 +70,12 @@ function App() {
           <Route path="/admin/students" element={<ManageStudentsAttendance />} />
           <Route path="/admin/reports" element={<AdminReports />} />
           <Route path="/admin/faculty" element={<FacultyList />} />
+          <Route path="/admin/NotificationsList" element={<NotificationsList />} />
+          <Route
+            path="/admin/notifications-edit/:id"
+            element={<EditNotification />}
+          />
+          <Route path="/admin/Notifications-Add" element={<AddNotification />} />
           <Route path="/faculty/add" element={<AddFaculty />} />
           <Route path="/faculty/edit/:id" element={<EditFaculty />} />
         </Routes>

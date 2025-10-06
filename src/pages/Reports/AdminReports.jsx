@@ -12,6 +12,7 @@ import {
 } from "chart.js";
 import { Bar, Pie } from "react-chartjs-2";
 import Sidebar from "../../components/Sidebar";
+import api from "../../api/axiosInstance";
 
 ChartJS.register(
   LineElement,
@@ -38,14 +39,14 @@ export default function AdminReports() {
     const fetchReports = async () => {
       try {
         setLoading(true);
-        const [attRes, backlogRes, examRes] = await Promise.all([
-          fetch("http://localhost:5000/api/reports/attendance/summary", {
+        const [attRes, backlogRes, examRes] = await api.Promise.all([
+          fetch("/reports/attendance/summary", {
             headers: { Authorization: `Bearer ${token}` },
           }).then((r) => r.json()),
-          fetch("http://localhost:5000/api/reports/backlogs/summary", {
+          fetch("/reports/backlogs/summary", {
             headers: { Authorization: `Bearer ${token}` },
           }).then((r) => r.json()),
-          fetch("http://localhost:5000/api/reports/exam-performance", {
+          fetch("/reports/exam-performance", {
             headers: { Authorization: `Bearer ${token}` },
           }).then((r) => r.json()),
         ]);
@@ -55,7 +56,7 @@ export default function AdminReports() {
         setExamPerformance(examRes.data || []);
 
         // fetch subjects
-        fetch("http://localhost:5000/api/subjects/", {
+        fetch("/subjects/", {
           headers: { Authorization: `Bearer ${token}` },
         })
           .then((res) => res.json())
@@ -72,7 +73,7 @@ export default function AdminReports() {
 
   const fetchSubjectAttendance = (subjectId) => {
     fetch(
-      `http://localhost:5000/api/reports/attendance/subject/${subjectId}`,
+      `/reports/attendance/subject/${subjectId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }

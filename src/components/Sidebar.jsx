@@ -9,7 +9,7 @@ const Sidebar = ({ dark }) => {
     { id: 4, label: "Faculty", path: "/admin/faculty" },
     { id: 5, label: "Placements", path: "/placements" },
     { id: 6, label: "Reports", path: "/admin/reports" },
-    { id: 7, label: "Notifications", path: "/notifications" },
+    { id: 7, label: "Notifications", path: "/admin/NotificationsList" },
   ];
 
   return (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from "../../api/axiosInstance";
 
 const FeeListManagement = () => {
   const [fees, setFees] = useState([]);
@@ -12,7 +12,7 @@ const FeeListManagement = () => {
 
   const fetchFees = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/fees/', {
+      const res = await api.get('/fees/', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFees(res.data);

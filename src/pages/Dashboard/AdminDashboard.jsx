@@ -10,6 +10,8 @@ import {
   Legend,
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
+import api from "../../api/axiosInstance";
+
 
 // Register chart components
 ChartJS.register(LineElement, BarElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
@@ -24,7 +26,7 @@ export default function AdminDashboard() {
 
   // ✅ Fetch Dashboard Stats
   useEffect(() => {
-    fetch("http://localhost:5000/api/dashboard/admin", {
+    fetch("https://my-college-project-server.onrender.com/api/dashboard/admin", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -34,7 +36,7 @@ export default function AdminDashboard() {
 
   // ✅ Fetch Attendance Summary
   useEffect(() => {
-    fetch("http://localhost:5000/api/reports/attendance/summary", {
+    fetch("https://my-college-project-server.onrender.com/api/reports/attendance/summary", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
