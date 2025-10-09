@@ -34,14 +34,16 @@ import EditFaculty from "./pages/Faculty/EditFaculty";
 import PlacementsDashboard from "./pages/Placements/PlacementsDashboard";
 import NotificationsList  from "./pages/Notifications/NotificationsList.jsx";
 import AddNotification from "./pages/Notifications/AddNotification.jsx";
-import EditNotification from "./pages/Notifications/NotificationsList.jsx";
+import EditNotification from "./pages/Notifications/EditNotification.jsx";
+import AdminTimetable from "./pages/Timetable/AdminTimetable";
+
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Login />} />
           <Route path="/admin" element={<PrivateRoute role="admin"><AdminDashboard /></PrivateRoute>} />
           <Route path="/faculty" element={<PrivateRoute role="faculty"><FacultyDashboard /></PrivateRoute>} />
           <Route path="/student" element={<PrivateRoute role="student"><StudentDashboard /></PrivateRoute>} />
@@ -71,10 +73,8 @@ function App() {
           <Route path="/admin/reports" element={<AdminReports />} />
           <Route path="/admin/faculty" element={<FacultyList />} />
           <Route path="/admin/NotificationsList" element={<NotificationsList />} />
-          <Route
-            path="/admin/notifications-edit/:id"
-            element={<EditNotification />}
-          />
+          <Route path="/admin/notifications-edit/:id" element={<EditNotification />} />
+          <Route path="/admin/timetable" element={<PrivateRoute role="admin"><AdminTimetable /></PrivateRoute>}/>
           <Route path="/admin/Notifications-Add" element={<AddNotification />} />
           <Route path="/faculty/add" element={<AddFaculty />} />
           <Route path="/faculty/edit/:id" element={<EditFaculty />} />

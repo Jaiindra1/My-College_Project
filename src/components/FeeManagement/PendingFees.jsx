@@ -54,7 +54,7 @@ const PendingFees = () => {
   return (
     <div className="p-6 bg-background-light dark:bg-background-dark min-h-screen">
       <h2 className="text-3xl font-bold text-gray-800 dark:text-Black mb-6 text-center">
-        💰 Pending Fee Records
+         Pending Fee Records
       </h2>
 
       {/* 🔍 Search Box */}

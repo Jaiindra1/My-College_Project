@@ -18,7 +18,8 @@ const StudentList = () => {
   // ✅ Fetch students
   const fetchStudents = async () => {
     try {
-      const { data } = await api.get("/students");
+      const { data } = await api.get("/students/");
+      console.log(data);
       setStudents(data);
     } catch (err) {
       console.error(err);
@@ -57,11 +58,11 @@ const StudentList = () => {
   const openEditModal = (student) => {
     setEditingStudent(student);
     setFormData({
-      name: student.name,
+      name: student.student_name,
       roll_no: student.roll_no,
       email: student.email || "",
       join_year: student.join_year || "",
-      regulation_id: student.regulation_id || "",
+      regulation_id: student.regulation_id || "1",
     });
   };
 
@@ -93,16 +94,16 @@ const StudentList = () => {
           </h2>
           <Link
             to="/students/add"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-blue-700 transition duration-300"
           >
             ➕ Add Student
           </Link>
         </header>
 
         {/* Table */}
-        <div className="bg-white dark:bg-background-dark/50 rounded-xl shadow-lg overflow-hidden">
-          <table className="w-full text-sm text-left text-gray-700 dark:text-gray-300">
-            <thead className="text-xs uppercase bg-gray-100 dark:bg-gray-700/40 text-gray-600 dark:text-gray-300">
+        <div className="bg-white dark:bg-background-dark/60 rounded-xl shadow-lg overflow-hidden">
+          <table className="min-w-full text-sm text-left text-gray-700 dark:text-gray-300">
+            <thead className="text-xs uppercase bg-blue-100 dark:bg-blue-900 text-gray-600 dark:text-gray-300">
               <tr>
                 <th className="px-6 py-4">Roll No</th>
                 <th className="px-6 py-4">Name</th>
@@ -118,13 +119,13 @@ const StudentList = () => {
                 students.map((s) => (
                   <tr
                     key={s.student_id}
-                    className="border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    className="border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                   >
-                    <td className="px-6 py-3">{s.roll_no}</td>
-                    <td className="px-6 py-3">{s.student_name}</td>
-                    <td className="px-6 py-3">{s.email || "—"}</td>
-                    <td className="px-6 py-3">{s.join_year || "—"}</td>
-                    <td className="px-6 py-3">{s.regulation || "—"}</td>
+                    <td className="px-6 py-3 text-gray-800 dark:text-black">{s.roll_no}</td>
+                    <td className="px-6 py-3 text-gray-800 dark:text-black">{s.student_name}</td>
+                    <td className="px-6 py-3 text-gray-800 dark:text-black">{s.email || "—"}</td>
+                    <td className="px-6 py-3 text-gray-800 dark:text-black">{s.join_year || "—"}</td>
+                    <td className="px-6 py-3 text-gray-800 dark:text-black">{s.regulation || "—"}</td>
                     <td className="px-6 py-3">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -136,16 +137,16 @@ const StudentList = () => {
                         {s.status}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-right space-x-2">
+                    <td className="px-6 py-3 text-right space-x-3">
                       <button
                         onClick={() => openEditModal(s)}
-                        className="px-3 py-1 text-xs bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow"
+                        className="px-4 py-2 text-xs bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition-all"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => deleteStudent(s.student_id)}
-                        className="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg shadow"
+                        className="px-4 py-2 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-md transition-all"
                       >
                         Delete
                       </button>
@@ -154,7 +155,7 @@ const StudentList = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="px-6 py-6 text-center">
+                  <td colSpan="7" className="px-6 py-6 text-center text-gray-500">
                     No students found.
                   </td>
                 </tr>
@@ -166,8 +167,8 @@ const StudentList = () => {
         {/* Edit Modal */}
         {editingStudent && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-6">
-              <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-md p-8">
+              <h3 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
                 ✏️ Edit Student
               </h3>
 
@@ -177,7 +178,7 @@ const StudentList = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
                   placeholder="Full Name"
                 />
 
@@ -186,7 +187,7 @@ const StudentList = () => {
                   name="roll_no"
                   value={formData.roll_no}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
                   placeholder="Roll Number"
                 />
 
@@ -196,7 +197,7 @@ const StudentList = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
                   placeholder="Email Address"
                 />
 
@@ -205,7 +206,7 @@ const StudentList = () => {
                   name="join_year"
                   value={formData.join_year}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Select Join Year</option>
                   {Array.from(
@@ -223,7 +224,7 @@ const StudentList = () => {
                   name="regulation_id"
                   value={formData.regulation_id}
                   onChange={handleEditChange}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Select Regulation</option>
                   {regulations.map((r) => (
@@ -234,7 +235,7 @@ const StudentList = () => {
                 </select>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
+              <div className="mt-6 flex justify-end gap-4">
                 <button
                   onClick={() => setEditingStudent(null)}
                   className="px-4 py-2 rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300"

@@ -64,10 +64,11 @@ export default function NotificationsList() {
         {error && <p className="text-red-600">{error}</p>}
 
         {!loading && !error && (
-          <table className="w-full border rounded">
+          <table className="w-full border rounded text-center">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">Title</th>
+                <th className="p-2 border">Message</th>
                 <th className="p-2 border">Audience</th>
                 <th className="p-2 border">Created At</th>
                 <th className="p-2 border">Actions</th>
@@ -78,6 +79,7 @@ export default function NotificationsList() {
                 notifications.map((n) => (
                   <tr key={n.notification_id} className="hover:bg-gray-50">
                     <td className="border p-2">{n.title}</td>
+                    <td className="border p-2">{n.message}</td>
                     <td className="border p-2 capitalize">{n.audience}</td>
                     <td className="border p-2">
                       {new Date(n.created_at).toLocaleDateString()}

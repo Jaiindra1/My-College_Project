@@ -26,7 +26,7 @@ const FeeListManagement = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="text-center mb-3">📊 Pending Fees</h2>
+      <h2 className="text-center mb-3"> Pending Fees</h2>
       <table className="w-full border-collapse rounded-xl overflow-hidden shadow-lg">
   <thead>
     <tr className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm uppercase tracking-wide">

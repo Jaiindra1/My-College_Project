@@ -27,6 +27,7 @@ ChartJS.register(
 
 export default function AdminReports() {
   const token = localStorage.getItem("token");
+
   const [attendanceSummary, setAttendanceSummary] = useState([]);
   const [backlogSummary, setBacklogSummary] = useState([]);
   const [examPerformance, setExamPerformance] = useState([]);
@@ -35,61 +36,67 @@ export default function AdminReports() {
   const [loading, setLoading] = useState(true);
   const [subjects, setSubjects] = useState([]);
 
+  // ✅ Fetch Reports
   useEffect(() => {
     const fetchReports = async () => {
       try {
         setLoading(true);
-        const [attRes, backlogRes, examRes] = await api.Promise.all([
-          fetch("/reports/attendance/summary", {
+
+        // Parallel API requests
+        const [attRes, backlogRes, examRes] = await Promise.all([
+          api.get("/reports/attendance/summary", {
             headers: { Authorization: `Bearer ${token}` },
-          }).then((r) => r.json()),
-          fetch("/reports/backlogs/summary", {
+          }),
+          api.get("/reports/backlogs/summary", {
             headers: { Authorization: `Bearer ${token}` },
-          }).then((r) => r.json()),
-          fetch("/reports/exam-performance", {
+          }),
+          api.get("/reports/exam-performance", {
             headers: { Authorization: `Bearer ${token}` },
-          }).then((r) => r.json()),
+          }),
         ]);
 
-        setAttendanceSummary(attRes.data || []);
-        setBacklogSummary(backlogRes || []);
-        setExamPerformance(examRes.data || []);
+        setAttendanceSummary(attRes.data?.data || []);
+        setBacklogSummary(backlogRes.data?.data || backlogRes.data || []);
+        setExamPerformance(examRes.data?.data || []);
 
-        // fetch subjects
-        fetch("/subjects/", {
+        // Fetch Subjects
+        const subjRes = await api.get("/subjects/", {
           headers: { Authorization: `Bearer ${token}` },
-        })
-          .then((res) => res.json())
-          .then((data) => setSubjects(data.subjects || data))
-          .catch((err) => console.error("❌ Error fetching subjects:", err));
+        });
+        setSubjects(subjRes.data?.subjects || subjRes.data || []);
       } catch (err) {
-        console.error("❌ Error loading reports:", err);
+        console.error("❌ Error loading reports:", err.response || err.message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchReports();
   }, [token]);
 
-  const fetchSubjectAttendance = (subjectId) => {
-    fetch(
-      `/reports/attendance/subject/${subjectId}`,
-      {
+  // ✅ Fetch Subject-wise Attendance
+  const fetchSubjectAttendance = async (subjectId) => {
+    try {
+      const res = await api.get(`/reports/attendance/subject/${subjectId}`, {
         headers: { Authorization: `Bearer ${token}` },
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => setSubjectDetails(data))
-      .catch((err) =>
-        console.error("❌ Error fetching subject-wise attendance:", err)
+      });
+      setSubjectDetails(res.data || []);
+    } catch (err) {
+      console.error(
+        "❌ Error fetching subject-wise attendance:",
+        err.response || err.message
       );
+    }
   };
 
-  if (loading) return <div className="text-center mt-12 text-xl">Loading Reports...</div>;
+  if (loading)
+    return <div className="text-center mt-12 text-xl">Loading Reports...</div>;
 
-  // Chart Data
+  // ✅ Chart Data
   const attendanceChartData = {
-    labels: attendanceSummary.map((r) => `${new Date(r.month).toLocaleString("default", {month: "long",})}`),
+    labels: attendanceSummary.map((r) =>
+      new Date(r.month).toLocaleString("default", { month: "long" })
+    ),
     datasets: [
       {
         label: "Avg Attendance %",
@@ -127,7 +134,7 @@ export default function AdminReports() {
         backgroundColor: "#10b981",
         borderRadius: 6,
         barPercentage: 0.4,
-        categoryPercentage: 0.6
+        categoryPercentage: 0.6,
       },
       {
         label: "Avg Marks",
@@ -148,9 +155,9 @@ export default function AdminReports() {
           📈 Admin Reports
         </h1>
 
-        {/* Grid for Charts */}
+        {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Attendance */}
+          {/* Attendance Summary */}
           <section className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-semibold mb-4 text-indigo-700">
               Semester-wise Attendance Summary
@@ -176,25 +183,33 @@ export default function AdminReports() {
             <h2 className="text-xl font-semibold mb-4 text-indigo-700">
               Exam Performance Trends
             </h2>
-            <Bar data={examChartData} options={{ responsive: true }} />
+            {examPerformance.length > 0 ? (
+              <Bar data={examChartData} options={{ responsive: true }} />
+            ) : (
+              <p>No exam performance data available.</p>
+            )}
           </section>
 
-          {/* Backlogs */}
+          {/* Backlog Analysis */}
           <section className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-semibold mb-4 text-indigo-700">
               Backlog Analysis
             </h2>
-            <div className="flex justify-center">
-              <Pie
-                data={backlogPieData}
-                options={{
-                  responsive: true,
-                  plugins: {
-                    legend: { position: "right" },
-                  },
-                }}
-              />
-            </div>
+            {backlogSummary.length > 0 ? (
+              <div className="flex justify-center">
+                <Pie
+                  data={backlogPieData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: "right" },
+                    },
+                  }}
+                />
+              </div>
+            ) : (
+              <p>No backlog data available.</p>
+            )}
           </section>
 
           {/* Subject-wise Attendance */}
@@ -217,6 +232,7 @@ export default function AdminReports() {
                 </option>
               ))}
             </select>
+
             {selectedSubject && subjectDetails.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">

@@ -8,7 +8,6 @@ export default function EditNotification() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Get notification data if passed from list
   const passedNotification = location.state?.notification;
 
   const [form, setForm] = useState({
@@ -19,10 +18,11 @@ export default function EditNotification() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState(null); // ✅ store result message
 
   useEffect(() => {
     if (passedNotification) {
-      // If we have notification from state, use it directly
       setForm({
         title: passedNotification.title,
         message: passedNotification.message,
@@ -31,7 +31,6 @@ export default function EditNotification() {
       });
       setLoading(false);
     } else {
-      // Otherwise fetch from API
       const fetchNotification = async () => {
         try {
           const { data } = await api.get(`/notifications/${id}`);
@@ -55,10 +54,30 @@ export default function EditNotification() {
     try {
       await api.put(`/notifications/${id}`, form);
       alert("✅ Notification updated successfully!");
-      navigate("/admin/notifications-list");
+      navigate("/admin/notificationsList");
     } catch (err) {
       console.error("❌ Update error:", err);
       alert("Failed to update notification.");
+    }
+  };
+
+  // ✅ Send Notification Button handler
+  const handleSendNotification = async () => {
+    if (!window.confirm("Send this notification now?")) return;
+    setSending(true);
+    setSendResult(null);
+
+    try {
+      const { data } = await api.post(`/notifications/${id}/send`);
+      setSendResult({ success: true, message: data.message });
+    } catch (err) {
+      console.error("❌ Send error:", err);
+      setSendResult({
+        success: false,
+        message: err.response?.data?.error || "Failed to send notification.",
+      });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -106,12 +125,40 @@ export default function EditNotification() {
             onChange={handleChange}
             className="w-full border p-2 rounded"
           />
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-          >
-            Save Changes
-          </button>
+
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700"
+            >
+              Save Changes
+            </button>
+
+            {/* ✅ Send Button */}
+            <button
+              type="button"
+              onClick={handleSendNotification}
+              disabled={sending}
+              className={`flex-1 py-2 rounded text-white ${
+                sending
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {sending ? "Sending..." : "📨 Send Notification"}
+            </button>
+          </div>
+
+          {/* ✅ Show send result */}
+          {sendResult && (
+            <p
+              className={`mt-3 text-sm font-medium ${
+                sendResult.success ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {sendResult.message}
+            </p>
+          )}
         </form>
       </main>
     </div>

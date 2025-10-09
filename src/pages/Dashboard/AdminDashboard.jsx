@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from 'axios';
 import {
   Chart as ChartJS,
   LineElement,
@@ -24,9 +25,15 @@ export default function AdminDashboard() {
 
   const token = localStorage.getItem("token");
 
+  // ✅ Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // remove token
+    window.location.href = "/"; // redirect to login page
+  };
+
   // ✅ Fetch Dashboard Stats
   useEffect(() => {
-    fetch("https://my-college-project-server.onrender.com/api/dashboard/admin", {
+    fetch("http://localhost:5000/api/dashboard/admin", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -36,13 +43,12 @@ export default function AdminDashboard() {
 
   // ✅ Fetch Attendance Summary
   useEffect(() => {
-    fetch("https://my-college-project-server.onrender.com/api/reports/attendance/summary", {
+    fetch("http://localhost:5000/api/reports/attendance/summary", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((json) => {
         console.log("📌 Attendance Summary API:", json);
-        // Handle array or object
         if (Array.isArray(json)) {
           setAttendanceSummary(json);
         } else if (json.data && Array.isArray(json.data)) {
@@ -100,6 +106,7 @@ export default function AdminDashboard() {
   { id: 5, label: "Placements", path: "/placements" },
   { id: 6, label: "Reports", path: "/admin/reports" },
   { id: 7, label: "Notifications", path: "/notifications" },
+  { id: 7, label: "Timetable", path: "/admin/timetable"}
 ];
 
   return (
@@ -115,6 +122,29 @@ export default function AdminDashboard() {
         {item.label}
       </a>
     ))}
+    {/* ✅ Logout Button */}
+      <button
+        onClick={handleLogout}
+        style={{
+          marginTop: "auto",
+          padding: "10px 15px",
+          background: dark ? "#ef4444" : "#dc2626",
+          color: "#fff",
+          border: "none",
+          borderRadius: 6,
+          fontWeight: "bold",
+          cursor: "pointer",
+          transition: "0.3s",
+        }}
+        onMouseEnter={(e) =>
+          (e.target.style.background = dark ? "#dc2626" : "#b91c1c")
+        }
+        onMouseLeave={(e) =>
+          (e.target.style.background = dark ? "#ef4444" : "#dc2626")
+        }
+      >
+        🚪 Logout
+      </button>
       </aside>
       {/* Main */}
       <main style={styles.main}>

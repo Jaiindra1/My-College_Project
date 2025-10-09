@@ -97,7 +97,7 @@ export default function ExamList() {
                   exams.map((exam) => (
                     <tr
                       key={exam.exam_id}
-                      className="border-b hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      className="border-b hover:bg-blue-50 text-black dark:hover:bg-blue-900/20"
                     >
                       <td className="px-6 py-4">{exam.regulation_name}</td>
                       <td className="px-6 py-4">Sem {exam.semester}</td>
