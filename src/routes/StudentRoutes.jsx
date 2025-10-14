@@ -16,16 +16,16 @@ const StudentRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<StudentDashboard />} />
-      <Route  path="/attendance" element={ <StudentAttendance /> } />
-      <Route path="/timetable" element={<StudentTimetable />} />
-      <Route path="/exams" element={<UpcomingExams />} />
-      <Route path="/results" element={<Results />} />
-      <Route path="/placements" element={<StudentPlacements />} />
-      <Route path="/notifications" element={<StudentNotifications />} />
-      <Route path="/fee" element={<FeeManagement />} />
-      <Route path="/profile" element={<ProfileSettings />} />
-      <Route path="/analytics" element={<AnalyticsDashboard />} />
-      <Route path="/helpdesk" element={<HelpDesk />} />
+      <Route  path="attendance" element={ <StudentAttendance /> } />
+      <Route path="timetable" element={<StudentTimetable />} />
+      <Route path="exams" element={<UpcomingExams />} />
+      <Route path="results" element={<Results />} />
+      <Route path="placements" element={<StudentPlacements />} />
+      <Route path="notifications" element={<StudentNotifications />} />
+      <Route path="fee" element={<FeeManagement />} />
+      <Route path="profile" element={<ProfileSettings />} />
+      <Route path="analytics" element={<AnalyticsDashboard />} />
+      <Route path="helpdesk" element={<HelpDesk />} />
       <Route path="*" element={<h2 className="p-8 text-center">Page Not Found</h2>} />
     </Routes>
   );
