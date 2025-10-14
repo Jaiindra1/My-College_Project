@@ -299,3 +299,4 @@ const styles = {
   tr: { background: "#fff" },
   loading: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontSize: 24 },
 };
+
