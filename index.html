@@ -2,15 +2,94 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image" href="https://breathetogetheryoga.com/wp-content/uploads/elementor/thumbs/om-by-martialred-qublbz5ht4w0uk00174tow3qd1ut1udpcuolkcwrnk.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1"
+    />
+    <title>College Management System</title>
+
+    <!-- 🌿 Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://breathetogetheryoga.com/wp-content/uploads/elementor/thumbs/om-by-martialred-qublbz5ht4w0uk00174tow3qd1ut1udpcuolkcwrnk.jpg"
+    />
+
+    <!-- ⚙️ Tailwind CSS (with plugins) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- 🎨 Tailwind Custom Configuration -->
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#11d411",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102210",
+              "card-light": "#ffffff",
+              "card-dark": "#182c18",
+              "border-light": "#e5e7eb",
+              "border-dark": "#374151",
+              "subtle-light": "#9ca3af",
+              "subtle-dark": "#6b7280",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "0.75rem",
+              xl: "1rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- 🧱 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- 🔣 Material Symbols (for icons like 'menu', 'logout', etc.) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+
+    <!-- 📊 Chart.js for Analytics (Optional but Recommended) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- ⚡ AOS Animation Library (Optional – for smooth UI transitions) -->
+    <link
+      href="https://unpkg.com/aos@2.3.1/dist/aos.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- 🧭 Meta tags for SEO & responsiveness -->
+    <meta
+      name="description"
+      content="Student Portal - College Management System built by Jai Indra"
+    />
+    <meta name="theme-color" content="#11d411" />
   </head>
-  <body>
+
+  <body class="font-display bg-background-light text-foreground-light">
     <div id="root"></div>
+
+    <!-- 🚀 Initialize React -->
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- 🌀 Initialize AOS Animations -->
+    <script>
+      AOS.init({ duration: 800, once: true });
+    </script>
   </body>
 </html>

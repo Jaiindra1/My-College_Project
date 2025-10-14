@@ -99,14 +99,15 @@ export default function AdminDashboard() {
     { subject: "English", percent: 10 },
   ];
   const navItems = [
-  { id: 1, label: "Students", path: "/students" },
-  { id: 2, label: "Exams", path: "/exams" },
-  { id: 3, label: "Fees", path: "/admin/fees" },
-  { id: 4, label: "Faculty", path: "/admin/faculty" },
-  { id: 5, label: "Placements", path: "/placements" },
-  { id: 6, label: "Reports", path: "/admin/reports" },
-  { id: 7, label: "Notifications", path: "/notifications" },
-  { id: 7, label: "Timetable", path: "/admin/timetable"}
+  { id: 1, label: "Dashboard", path: "/admin" },
+  { id: 2, label: "Students", path: "/admin/students" },
+  { id: 3, label: "Exams", path: "/admin/exams" },
+  { id: 4, label: "Fees", path: "/admin/fees" },
+  { id: 5, label: "Faculty", path: "/admin/faculty" },
+  { id: 6, label: "Placements", path: "/admin/placements" },
+  { id: 7, label: "Reports", path: "/admin/reports" },
+  { id: 8, label: "Notifications", path: "/admin/notifications" },
+  { id: 9, label: "Timetable", path: "/admin/timetable" },
 ];
 
   return (

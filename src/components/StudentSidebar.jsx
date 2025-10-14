@@ -43,7 +43,7 @@ const StudentSidebar = ({ name, rollNo, onLogout }) => {
           </a>
 
           <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-900 dark:text-white hover:bg-primary/20 dark:hover:bg-primary/30"
-           href="#">
+           href="/student/attendance">
             <svg
               className="w-6 h-6"
               fill="currentColor"

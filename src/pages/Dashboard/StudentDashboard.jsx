@@ -6,12 +6,11 @@ import StudentSidebar from "../../components/StudentSidebar";
 const StudentDashboard = () => {
   const [profile, setProfile] = useState(null);
   const [timetable, setTimetable] = useState([]);
-  const [attendance, setAttendance] = useState(null);
+  const [attendanceSummary, setAttendanceSummary] = useState(null);
   const [exams, setExams] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const navigate = useNavigate();
 
   // ✅ Logout Function
@@ -33,75 +32,90 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: profileData } = await api.get("/students/me");
+        // Fetch profile first as other calls depend on it
+        const { data: profileData } = await api.get('/students/me');
         setProfile(profileData);
+        localStorage.setItem("studentProfile", JSON.stringify(profileData));
 
-        // 🧮 Attendance
-        const { data: attendanceRecords } = await api.get(
-          `/attendance/student/${profileData.student_id}`
-        );
+        // Fetch remaining data in parallel
+        const [
+          attendanceResponse,
+          examsResponse,
+          notificationsResponse,
+          timetableResponse,
+        ] = await Promise.allSettled([
+          api.get(`/attendance/student/${profileData.student_id}`),
+          api.get(`/exams/semester/${profileData.current_sem_id}`),
+          api.get(`/notifications/`),
+          api.get(`/timetable/${profileData.current_sem_id}`),
+        ]);
 
-        const currentMonth = new Date().getMonth() + 1;
-        const currentYear = new Date().getFullYear();
+        // 🧮 Process Attendance
+        if (attendanceResponse.status === 'fulfilled') {
+          const { data: attendanceRecords } = attendanceResponse.value;
+          const currentMonth = new Date().getMonth() + 1;
+          const currentYear = new Date().getFullYear();
 
-        const monthlyRecords = attendanceRecords.filter((rec) => {
-          const recordDate = new Date(rec.month);
-          return (
-            recordDate.getMonth() + 1 === currentMonth &&
-            recordDate.getFullYear() === currentYear
-          );
-        });
+          const monthlyRecords = attendanceRecords.filter((rec) => {
+            const recordDate = new Date(rec.month);
+            return (
+              recordDate.getMonth() + 1 === currentMonth &&
+              recordDate.getFullYear() === currentYear
+            );
+          });
 
-        const totalClasses = monthlyRecords.reduce(
-          (sum, rec) => sum + (rec.total_classes || 0),
-          0
-        );
-        const attendedClasses = monthlyRecords.reduce(
-          (sum, rec) => sum + (rec.attended_classes || 0),
-          0
-        );
+          const totalClasses = monthlyRecords.reduce((sum, rec) => sum + (rec.total_classes || 0), 0);
+          const attendedClasses = monthlyRecords.reduce((sum, rec) => sum + (rec.attended_classes || 0), 0);
+          const percentage = totalClasses > 0 ? Math.round((attendedClasses / totalClasses) * 100) : 0;
 
-        const percentage =
-          totalClasses > 0
-            ? Math.round((attendedClasses / totalClasses) * 100)
-            : 0;
+          setAttendanceSummary({ percentage, totalClasses, attendedClasses });
+        } else {
+          console.error("❌ Error fetching attendance:", attendanceResponse.reason);
+        }
 
-        setAttendance({ percentage, totalClasses, attendedClasses });
+        // 🧾 Process Exams
+        if (examsResponse.status === 'fulfilled') {
+          const { data: examsData } = examsResponse.value;
+          setExams(Array.isArray(examsData) ? examsData : [examsData]);
+        } else if (examsResponse.reason.response?.status !== 404) {
+          console.error('❌ Error fetching exams for semester:', examsResponse.reason);
+        }
 
-        // 🧾 Exams
-        const { data: examsData } = await api.get(
-          `/exams/${profileData.current_sem_id}`
-        );
-        setExams(Array.isArray(examsData) ? examsData : [examsData]);
+        // 🔔 Process Notifications
+        if (notificationsResponse.status === 'fulfilled') {
+          setNotifications(notificationsResponse.value.data.slice(0, 5));
+        } else {
+          console.error("❌ Error fetching notifications:", notificationsResponse.reason);
+        }
 
-        // 🔔 Notifications
-        const { data: notificationsData } = await api.get(`/notifications/`);
-        setNotifications(notificationsData.slice(0, 5));
+        // 📅 Process Timetable
+        if (timetableResponse.status === 'fulfilled') {
+          const { data: timetableData } = timetableResponse.value;
+          const now = new Date();
+          const isEvening = now.getHours() >= 17; // After 5 PM → show next day's timetable
+          const displayDate = new Date(now);
+          if (isEvening) {
+            displayDate.setDate(displayDate.getDate() + 1);
+          }
+          const targetDay = displayDate.toLocaleString("en-US", { weekday: "long" });
+          const todayClasses = timetableData
+            .filter((cls) => cls.day?.toLowerCase() === targetDay.toLowerCase())
+            .sort((a, b) => a.start_time.localeCompare(b.start_time));
+          setTimetable(todayClasses);
+        } else {
+          console.error("❌ Error fetching timetable:", timetableResponse.reason);
+        }
 
-        // 📅 Timetable (auto-day logic)
-        const { data: timetableData } = await api.get(
-          `/timetable/${profileData.current_sem_id}`
-        );
-
-        const now = new Date();
-        const isEvening = now.getHours() >= 17; // After 5 PM → show next day's timetable
-        const displayDate = new Date(
-          now.setDate(now.getDate() + (isEvening ? 1 : 0))
-        );
-
-        const targetDay = displayDate.toLocaleString("en-US", { weekday: "long" });
-
-        const todayClasses = timetableData
-          .filter(
-            (cls) => cls.day?.toLowerCase() === targetDay.toLowerCase()
-          )
-          .sort((a, b) => a.start_time.localeCompare(b.start_time));
-
-        setTimetable(todayClasses);
         setLoading(false);
       } catch (err) {
         console.error("❌ Error loading dashboard:", err);
-        handleLogout(); // invalid token or API error → logout
+        // Only logout on authentication errors
+        if (err.response && err.response.status === 401) {
+          handleLogout();
+        } else {
+          // Show a friendly state instead of forcing logout
+          setLoading(false);
+        }
       }
     };
 
@@ -121,6 +135,9 @@ const StudentDashboard = () => {
 
   const isEvening = new Date().getHours() >= 17;
 
+  // avatar URL (profile may provide avatar; fallback to public image)
+  const avatarUrl = profile?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuBU79XhrTQTvU5yfPM73BTeFHCNfEOma2YeyQVdQV-EcZ-bSZb5Ep_MG5lKwoDBiz_TK9aeZEp-BWPwSP83NzAmt5E1JtwY-FUqu9kR38Qk3LRCILi3bIQN4_HFwhS17RfU-NWHMCeUYeCVAFn28SKlbHBtOMIy0IgXn8rjItFF-FMI76baM-Nyrw0G0KzZrXSXR0Cl1_MCA6Yz4FAkFoMUNi4Ylsn9PcQD5Y59e03fk-VcOmdIH96zCy5m_23wT7gRmpvk-fIBY-0";
+
   return (
     <div className="bg-background-light dark:bg-background-dark text-foreground-light dark:text-foreground-dark min-h-screen flex flex-col">
       {/* ✅ HEADER */}
@@ -138,13 +155,15 @@ const StudentDashboard = () => {
               </div>
               <h1 className="text-xl font-bold">Academics</h1>
             </div>
-
             <nav className="hidden md:flex items-center gap-6">
-              <a className="text-sm font-medium hover:text-primary" href="#">Dashboard</a>
-              <a className="text-sm font-medium hover:text-primary" href="#">Courses</a>
-              <a className="text-sm font-medium hover:text-primary" href="#">Attendance</a>
-              <a className="text-sm font-medium hover:text-primary" href="#">Exams</a>
-              <a className="text-sm font-medium hover:text-primary" href="#">Results</a>
+              <a className="text-sm font-bold text-primary transition-colors" href="/student">Dashboard</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/notifications">Notifications</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/attendance">Attendance</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/placements">Placements</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/exams">Exams & Results</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/analytics">Analytics</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/helpdesk">HelpDesk</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/fee">Fee</a>
               <button
                 onClick={handleLogout}
                 className="text-sm font-medium text-red-600 hover:text-red-500"
@@ -152,6 +171,22 @@ const StudentDashboard = () => {
                 Logout
               </button>
             </nav>
+            <div className="flex items-center gap-4">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate('/student/profile')}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate('/student/profile'); }}
+                className="size-10 rounded-full bg-cover bg-center cursor-pointer"
+                style={{ backgroundImage: `url(${avatarUrl})` }}
+                aria-label="Open profile"
+              />
+              <button className="md:hidden p-2 rounded-md text-subtle-light dark:text-subtle-dark hover:bg-primary/10">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 6h16M4 12h16m-7 6h7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -218,7 +253,8 @@ const StudentDashboard = () => {
           {/* TIMETABLE */}
           <div className="bg-card-light dark:bg-card-dark p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold mb-4">
-              📅 {isEvening ? "Tomorrow's" : "Today's"} Timetable
+              <a className="hover:text-primary" href="/student/timetable">
+              📅 {isEvening ? "Tomorrow's" : "Today's"} Timetable </a>
             </h3>
             {timetable.length > 0 ? (
               timetable.map((cls, index) => (
@@ -261,15 +297,15 @@ const StudentDashboard = () => {
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   fill="none"
                   stroke="currentColor"
-                  strokeDasharray={`${attendance?.percentage || 0}, 100`}
+                  strokeDasharray={`${attendanceSummary?.percentage || 0}, 100`}
                   strokeLinecap="round"
                   strokeWidth="3"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold">{attendance?.percentage || 0}%</span>
+                <span className="text-xl font-bold">{attendanceSummary?.percentage || 0}%</span>
                 <span className="text-xs text-gray-500 mt-1">
-                  {attendance?.attendedClasses || 0}/{attendance?.totalClasses || 0} Classes
+                  {attendanceSummary?.attendedClasses || 0}/{attendanceSummary?.totalClasses || 0} Classes
                 </span>
               </div>
             </div>
