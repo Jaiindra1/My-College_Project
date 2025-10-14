@@ -16,7 +16,7 @@ const StudentRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<StudentDashboard />} />
-      <Route  path="attendance" element={ <StudentAttendance /> } />
+      <Route  path="/attendance" element={ <StudentAttendance /> } />
       <Route path="timetable" element={<StudentTimetable />} />
       <Route path="exams" element={<UpcomingExams />} />
       <Route path="results" element={<Results />} />
