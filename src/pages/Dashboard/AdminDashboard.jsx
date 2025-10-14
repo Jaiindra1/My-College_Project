@@ -33,7 +33,7 @@ export default function AdminDashboard() {
 
   // ✅ Fetch Dashboard Stats
   useEffect(() => {
-    fetch("http://localhost:5000/api/dashboard/admin", {
+    fetch("https://my-college-project-server.onrender.com/api/dashboard/admin", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
