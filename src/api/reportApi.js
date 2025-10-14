@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/reports";
+const API_URL = "https://my-college-project-server.onrender.com/api/reports";
 
 export async function fetchAttendanceSummary(token) {
   const res = await fetch(`${API_URL}/attendance/summary`, {
