@@ -15,16 +15,16 @@ export default function FacultyRoutes() {
   return (
     <Routes>
       <Route path="/" element={<FacultyDashboard />} />
-      <Route path="/FacultyAttendance" element={<FacultyAttendance />} />
-      <Route path="/FacultyAttendanceAnalytics" element={<FacultyAttendanceAnalytics />} />
-      <Route path="/FacultyProfile" element={<FacultyProfile />} />
-      <Route path="/FacultyReports" element={<FacultyReports />} />
-      <Route path="/FacultyAnnouncementList" element={<FacultyAnnouncementList />} />
-      <Route path="/FacultyAnnouncementAdd" element={<FacultyAnnouncementAdd />} />
-      <Route path="/FacultyMessages" element={<FacultyMessages />} />
-      <Route path="/FacultyAnnouncementPreview/:id" element={<FacultyAnnouncementPreview />} />
-      <Route path="/FacultyTimetable" element={<FacultyTimetable />} />
-      <Route path="/FacultyMarksEntry" element={<FacultyMarksEntry />} />
+      <Route path="FacultyAttendance" element={<FacultyAttendance />} />
+      <Route path="FacultyAttendanceAnalytics" element={<FacultyAttendanceAnalytics />} />
+      <Route path="FacultyProfile" element={<FacultyProfile />} />
+      <Route path="FacultyReports" element={<FacultyReports />} />
+      <Route path="FacultyAnnouncementList" element={<FacultyAnnouncementList />} />
+      <Route path="FacultyAnnouncementAdd" element={<FacultyAnnouncementAdd />} />
+      <Route path="FacultyMessages" element={<FacultyMessages />} />
+      <Route path="FacultyAnnouncementPreview/:id" element={<FacultyAnnouncementPreview />} />
+      <Route path="FacultyTimetable" element={<FacultyTimetable />} />
+      <Route path="FacultyMarksEntry" element={<FacultyMarksEntry />} />
       <Route path="FacultyAttendance" element={<FacultyAttendance />} />
       <Route path="FacultyAttendanceAnalytics" element={<FacultyAttendanceAnalytics />} />
       <Route path="FacultyProfile" element={<FacultyProfile />} />
