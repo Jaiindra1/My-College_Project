@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 
 export default function FeeManagement() {
-  const studentData = JSON.parse(localStorage.getItem("attendanceRecords"));
-  const studentId = studentData?.userId;
+  const studentData = JSON.parse(localStorage.getItem("studentProfile"));
+  const studentId = studentData?.student_id;
   const [fees, setFees] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
