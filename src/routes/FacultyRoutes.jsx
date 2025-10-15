@@ -15,7 +15,6 @@ export default function FacultyRoutes() {
   return (
     <Routes>
       <Route path="/" element={<FacultyDashboard />} />
-<<<<<<< HEAD
       <Route path="/FacultyAttendance" element={<FacultyAttendance />} />
       <Route path="/FacultyAttendanceAnalytics" element={<FacultyAttendanceAnalytics />} />
       <Route path="/FacultyProfile" element={<FacultyProfile />} />
@@ -26,7 +25,6 @@ export default function FacultyRoutes() {
       <Route path="/FacultyAnnouncementPreview/:id" element={<FacultyAnnouncementPreview />} />
       <Route path="/FacultyTimetable" element={<FacultyTimetable />} />
       <Route path="/FacultyMarksEntry" element={<FacultyMarksEntry />} />
-=======
       <Route path="FacultyAttendance" element={<FacultyAttendance />} />
       <Route path="FacultyAttendanceAnalytics" element={<FacultyAttendanceAnalytics />} />
       <Route path="FacultyProfile" element={<FacultyProfile />} />
@@ -38,7 +36,6 @@ export default function FacultyRoutes() {
       <Route path="FacultyTimetable" element={<FacultyTimetable />} />
       <Route path="FacultyMarksEntry" element={<FacultyMarksEntry />} />
       <Route path="*" element={<h2 className="p-8 text-center">Page Not Found</h2>} />
->>>>>>> 84de641 (Refactor: replaced fetch with Axios + minor component updates)
     </Routes>
   );
 }
