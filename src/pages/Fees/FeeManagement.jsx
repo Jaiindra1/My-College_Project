@@ -4,17 +4,16 @@ import api from "../../api/axiosInstance";
 import StudentSidebar from "../../components/StudentSidebar";
 
 export default function FeeManagement() {
-<<<<<<< HEAD
+
   const studentData = JSON.parse(localStorage.getItem("studentProfile"));
   const studentId = studentData?.student_id;
-=======
+
   const navigate = useNavigate();
   const studentData =
     JSON.parse(localStorage.getItem("studentProfile")) ||
     JSON.parse(localStorage.getItem("studentData"));
   const studentId = studentData?.student_id;
 
->>>>>>> 84de641 (Refactor: replaced fetch with Axios + minor component updates)
   const [fees, setFees] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
