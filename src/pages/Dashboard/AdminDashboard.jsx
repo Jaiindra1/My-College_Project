@@ -32,40 +32,50 @@ export default function AdminDashboard() {
     window.location.href = "/"; // redirect to login page
   };
 
-  // ✅ Fetch Dashboard Stats
-  useEffect(() => {
-    fetch("http://localhost:5000/api/dashboard/admin", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error("❌ Error fetching dashboard:", err));
-  }, [token]);
+ // ✅ Fetch Dashboard Stats
+useEffect(() => {
+  const fetchDashboardData = async () => {
+    try {
+      const response = await api.get("/dashboard/admin", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setData(response.data);
+    } catch (err) {
+      console.error("❌ Error fetching dashboard:", err);
+    }
+  };
 
-  // ✅ Fetch Attendance Summary
-  useEffect(() => {
-    fetch("http://localhost:5000/api/reports/attendance/summary", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        console.log("📌 Attendance Summary API:", json);
+  if (token) fetchDashboardData();
+}, [token]);
 
-        if (Array.isArray(json)) {
-          setAttendanceSummary(json);
-        } else if (json.data && Array.isArray(json.data)) {
-          setAttendanceSummary(json.data);
-        } else {
-          setAttendanceSummary([]);
-          setError("Attendance data not found or invalid format.");
-        }
-      } catch (err) {
-        console.error("❌ Error fetching attendance summary:", err);
-        setError("Failed to load attendance data.");
+// ✅ Fetch Attendance Summary
+useEffect(() => {
+  const fetchAttendanceSummary = async () => {
+    try {
+      const response = await api.get("/reports/attendance/summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const json = response.data;
+      console.log("📌 Attendance Summary API:", json);
+
+      if (Array.isArray(json)) {
+        setAttendanceSummary(json);
+      } else if (json.data && Array.isArray(json.data)) {
+        setAttendanceSummary(json.data);
+      } else {
+        setAttendanceSummary([]);
+        setError("Attendance data not found or invalid format.");
       }
-    };
-    if (token) fetchAttendanceSummary();
-  }, [token]);
+    } catch (err) {
+      console.error("❌ Error fetching attendance summary:", err);
+      setError("Failed to load attendance data.");
+    }
+  };
+
+  if (token) fetchAttendanceSummary();
+}, [token]);
+
 
   if (!data) return <div style={styles.loading}>Loading Dashboard...</div>;
 
