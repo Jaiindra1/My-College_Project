@@ -32,38 +32,49 @@ export default function AdminDashboard() {
     window.location.href = "/"; // redirect to login page
   };
 
-  // ✅ Fetch Dashboard Stats
+    // ✅ Fetch Dashboard Stats
   useEffect(() => {
-    fetch("https://my-college-project-server.onrender.com/api/dashboard/admin", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error("❌ Error fetching dashboard:", err));
+    const fetchDashboardStats = async () => {
+      try {
+        const { data } = await api.get("/dashboard/admin", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setData(data);
+      } catch (err) {
+        console.error("❌ Error fetching dashboard:", err);
+      }
+    };
+  
+    if (token) fetchDashboardStats();
   }, [token]);
-
+  
   // ✅ Fetch Attendance Summary
   useEffect(() => {
-    fetch("https://my-college-project-server.onrender.com/api/reports/attendance/summary", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        console.log("📌 Attendance Summary API:", json);
-        if (Array.isArray(json)) {
-          setAttendanceSummary(json);
-        } else if (json.data && Array.isArray(json.data)) {
-          setAttendanceSummary(json.data);
+    const fetchAttendanceSummary = async () => {
+      try {
+        const { data } = await api.get("/reports/attendance/summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        console.log("📌 Attendance Summary API:", data);
+  
+        if (Array.isArray(data)) {
+          setAttendanceSummary(data);
+        } else if (data.data && Array.isArray(data.data)) {
+          setAttendanceSummary(data.data);
         } else {
           setAttendanceSummary([]);
           setError("Attendance data not found or invalid format.");
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("❌ Error fetching attendance summary:", err);
         setError("Failed to load attendance data.");
-      });
+      }
+    };
+  
+    if (token) fetchAttendanceSummary();
   }, [token]);
+
 
   if (!data) return <div style={styles.loading}>Loading Dashboard...</div>;
 
