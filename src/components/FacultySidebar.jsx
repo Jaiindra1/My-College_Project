@@ -1,12 +1,20 @@
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // Assuming you have an AuthContext
 
 export default function FacultySidebar({ isOpen = true, onClose = () => {} }) {
   const navigate = useNavigate();
+  const { user, logout } = useAuth() || {}; // Get user and logout from context
 
   const handleLogout = () => {
     try {
       // 1️⃣ Clear session or JWT token if used
-      localStorage.removeItem("token");
+      // This logic is often better inside an AuthContext logout function
+      if (logout) {
+        logout();
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
 
       // 2️⃣ Close sidebar if on mobile
       if (onClose) onClose();
@@ -42,11 +50,11 @@ export default function FacultySidebar({ isOpen = true, onClose = () => {} }) {
           <img
             alt="Faculty Profile"
             className="w-10 h-10 rounded-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUbGCitIRbPK1Yj_Ypw74o19t6-DqX9txeX7mtqsFRYGwJ03ComjnWqjtooewIl4mIn7y1H_k1-VOxT9bbTvswJKYtA4EV7kH3iljEHZt8f53uBataO3eYdcUY5ft5U73pSupVeb466tvb8H126vyT-n8o0d-opk9jfsZfHg4Ixa43Ud674Pka2KL964lz5MhxaKKwX4W9S-RgErI70_1wF2s5YXeW39tEC99dB4yjeN8k-oCKdSJsAAhF7ehy4dI3nuhNF48JZy0"
+            src={user?.profilePicture || "https://via.placeholder.com/150"}
           />
           <div>
             <h1 className="text-base font-semibold text-black dark:text-white">
-              Dr. Amelia Harper
+              {user?.name || "Faculty Name"}
             </h1>
             <p className="text-xs text-black/60 dark:text-white/60">Faculty</p>
           </div>
@@ -65,20 +73,20 @@ export default function FacultySidebar({ isOpen = true, onClose = () => {} }) {
       {/* Sidebar Navigation */}
       <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
         {navLinks.map((link) => (
-          <a
+          <NavLink
             key={link.label}
-            href={link.href}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              window.location.pathname === link.href
-                ? "bg-primary/20 dark:bg-primary/30 text-primary"
-                : "text-black/70 dark:text-white/70 hover:bg-primary/10 dark:hover:bg-primary/20"
-            }`}
+            to={link.href}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-primary/20 dark:bg-primary/30 text-primary"
+                  : "text-black/70 dark:text-white/70 hover:bg-primary/10 dark:hover:bg-primary/20"
+              }`
+            }
           >
-            <span className="material-symbols-outlined text-lg">
-              {link.icon}
-            </span>
+            <span className="material-symbols-outlined text-lg">{link.icon}</span>
             {link.label}
-          </a>
+          </NavLink>
         ))}
       </nav>
 

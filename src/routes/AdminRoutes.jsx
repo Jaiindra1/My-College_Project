@@ -33,34 +33,35 @@ export default function AdminRoutes() {
   return (
     <Routes>
       <Route path="/" element={<AdminDashboard />} />
-      <Route path="/students" element={<StudentList />} />
-      <Route path="/students/add" element={<AddStudent />} />
-      <Route path="/attendance/upload" element={<AttendanceUpload />} />
-      <Route path="/attendance/summary" element={<AttendanceSummary />} />
-      <Route path="/exams" element={<ExamList />} />
-      <Route path="/exams/add" element={<AddExam />} />
-      <Route path="/exams/upload" element={<UploadResults />} />
-      <Route path="/exams/supply" element={<SupplyResults />} />
-      <Route path="/timetable" element={<AdminTimetable />} />
-      <Route path="/placements" element={<PlacementsDashboard />} />
-      <Route path="/placements/companies" element={<CompanyList />} />
-      <Route path="/placements/add-company" element={<AddCompany />} />
-      <Route path="/placements/register-student" element={<RegisterStudent />} />
-      <Route path="/placements/update-status" element={<UpdateStatus />} />
-      <Route path="/placements/manage-fees" element={<ManageFees />} />
-      <Route path="/feesList" element={<FeeListManagement />} />
-      <Route path="/fees/add" element={<AddFee />} />
-      <Route path="/fees/update" element={<UpdateFee />} />
-      <Route path="/fees/pending" element={<PendingFees />} />
-      <Route path="/fees" element={<FeeDashboard />} />
-      <Route path="/students/attendance" element={<ManageStudentsAttendance />} />
-      <Route path="/reports" element={<AdminReports />} />
-      <Route path="/faculty" element={<FacultyList />} />
-      <Route path="/faculty/add" element={<AddFaculty />} />
-      <Route path="/faculty/edit/:id" element={<EditFaculty />} />
-      <Route path="/notifications" element={<NotificationsList />} />
-      <Route path="/notifications/add" element={<AddNotification />} />
-      <Route path="/notifications/edit/:id" element={<EditNotification />} />
+      <Route path="students" element={<StudentList />} />
+      <Route path="students/add" element={<AddStudent />} />
+      <Route path="attendance/upload" element={<AttendanceUpload />} />
+      <Route path="attendance/summary" element={<AttendanceSummary />} />
+      <Route path="exams" element={<ExamList />} />
+      <Route path="exams/add" element={<AddExam />} />
+      <Route path="exams/upload" element={<UploadResults />} />
+      <Route path="exams/supply" element={<SupplyResults />} />
+      <Route path="timetable" element={<AdminTimetable />} />
+      <Route path="placements" element={<PlacementsDashboard />} />
+      <Route path="placements/companies" element={<CompanyList />} />
+      <Route path="placements/add-company" element={<AddCompany />} />
+      <Route path="placements/register-student" element={<RegisterStudent />} />
+      <Route path="placements/update-status" element={<UpdateStatus />} />
+      <Route path="placements/manage-fees" element={<ManageFees />} />
+      <Route path="feesList" element={<FeeListManagement />} />
+      <Route path="fees/add" element={<AddFee />} />
+      <Route path="fees/update" element={<UpdateFee />} />
+      <Route path="fees/pending" element={<PendingFees />} />
+      <Route path="fees" element={<FeeDashboard />} />
+      <Route path="students/attendance" element={<ManageStudentsAttendance />} />
+      <Route path="reports" element={<AdminReports />} />
+      <Route path="faculty" element={<FacultyList />} />
+      <Route path="faculty/add" element={<AddFaculty />} />
+      <Route path="faculty/edit/:id" element={<EditFaculty />} />
+      <Route path="notifications" element={<NotificationsList />} />
+      <Route path="notifications/add" element={<AddNotification />} />
+      <Route path="notifications/edit/:id" element={<EditNotification />} />
+      <Route path="*" element={<h2 className="p-8 text-center">Page Not Found</h2>} />
     </Routes>
   );
 }

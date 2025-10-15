@@ -1,5 +1,4 @@
 import axios from "axios";
-
 const api = axios.create({
   baseURL: "https://my-college-project-server.onrender.com/api",
 });

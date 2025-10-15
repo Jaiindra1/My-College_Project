@@ -16,21 +16,20 @@ const StudentDashboard = () => {
   // ✅ Logout Function
   const handleLogout = () => {
     localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
+    localStorage.removeItem("studentProfile");
+    localStorage.removeItem('user');
     navigate("/");
   };
-
-  // ✅ Redirect if not logged in
-  useEffect(() => {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    if (!token) {
-      navigate("/");
-    }
-  }, [navigate]);
 
   // ✅ Fetch all dashboard data
   useEffect(() => {
     const fetchData = async () => {
+      const token = localStorage.getItem("token") || localStorage.getItem("user");
+      if (!token) {
+        navigate("/");
+        return;
+      }
+
       try {
         // Fetch profile first as other calls depend on it
         const { data: profileData } = await api.get('/students/me');
@@ -106,16 +105,14 @@ const StudentDashboard = () => {
           console.error("❌ Error fetching timetable:", timetableResponse.reason);
         }
 
-        setLoading(false);
       } catch (err) {
         console.error("❌ Error loading dashboard:", err);
         // Only logout on authentication errors
         if (err.response && err.response.status === 401) {
           handleLogout();
-        } else {
-          // Show a friendly state instead of forcing logout
-          setLoading(false);
         }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -193,43 +190,53 @@ const StudentDashboard = () => {
 
       {/* ✅ SIDEBAR (for Mobile) */}
       <div className="md:hidden">
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-50 bg-black/50">
-            <div className="absolute left-0 top-0 h-full w-3/4 bg-card-light dark:bg-card-dark shadow-lg">
-              <StudentSidebar
-                name={profile?.name}
-                rollNo={profile?.roll_no}
-                onLogout={handleLogout}
-              />
-            </div>
-            <div
-              className="absolute inset-0"
-              onClick={() => setSidebarOpen(false)}
-            ></div>
-          </div>
-        )}
-        <div className="flex items-center justify-between p-4 bg-card-light dark:bg-card-dark border-b">
-          <h1 className="text-lg font-bold text-primary">🎓 Student Dashboard</h1>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-md hover:bg-primary/10"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4 6h16M4 12h16m-7 6h7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-              ></path>
-            </svg>
-          </button>
-        </div>
+  {/* ✅ Mobile Sidebar Overlay */}
+  {sidebarOpen && (
+    <div className="fixed inset-0 z-50 flex">
+      {/* Sidebar Drawer */}
+      <div className="h-full w-3/4 bg-card-light dark:bg-card-dark shadow-lg transform transition-transform duration-300 ease-in-out">
+        <StudentSidebar
+          name={profile?.name}
+          rollNo={profile?.roll_no}
+          onLogout={() => {
+            handleLogout();
+            setSidebarOpen(false);
+          }}
+        />
+      </div>
+
+      {/* Backdrop (click to close) */}
+      <div
+        className="flex-1 bg-black/50"
+        onClick={() => setSidebarOpen(false)}
+      />
+    </div>
+  )}
+
+  {/* ✅ Top Bar */}
+  <div className="flex items-center justify-between p-4 bg-card-light dark:bg-card-dark border-b">
+    <h1 className="text-lg font-bold text-primary">🎓 Student Dashboard</h1>
+    <button
+      onClick={() => setSidebarOpen(true)}
+      className="p-2 rounded-md hover:bg-primary/10 transition-all"
+      aria-label="Open Sidebar"
+    >
+      <svg
+        className="h-6 w-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M4 6h16M4 12h16m-7 6h7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+        ></path>
+      </svg>
+    </button>
+  </div>
       </div>
 
       {/* ✅ MAIN DASHBOARD */}

@@ -11,8 +11,8 @@ import {
   Legend,
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
+import Sidebar from "../../components/Sidebar";
 import api from "../../api/axiosInstance";
-
 
 // Register chart components
 ChartJS.register(LineElement, BarElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
@@ -28,12 +28,13 @@ export default function AdminDashboard() {
   // ✅ Logout Function
   const handleLogout = () => {
     localStorage.removeItem("token"); // remove token
+    localStorage.removeItem("user"); // remove user info
     window.location.href = "/"; // redirect to login page
   };
 
   // ✅ Fetch Dashboard Stats
   useEffect(() => {
-    fetch("https://my-college-project-server.onrender.com/api/dashboard/admin", {
+    fetch("http://localhost:5000/api/dashboard/admin", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -43,12 +44,13 @@ export default function AdminDashboard() {
 
   // ✅ Fetch Attendance Summary
   useEffect(() => {
-    fetch("https://my-college-project-server.onrender.com/api/reports/attendance/summary", {
+    fetch("http://localhost:5000/api/reports/attendance/summary", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((json) => {
         console.log("📌 Attendance Summary API:", json);
+
         if (Array.isArray(json)) {
           setAttendanceSummary(json);
         } else if (json.data && Array.isArray(json.data)) {
@@ -57,11 +59,12 @@ export default function AdminDashboard() {
           setAttendanceSummary([]);
           setError("Attendance data not found or invalid format.");
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("❌ Error fetching attendance summary:", err);
         setError("Failed to load attendance data.");
-      });
+      }
+    };
+    if (token) fetchAttendanceSummary();
   }, [token]);
 
   if (!data) return <div style={styles.loading}>Loading Dashboard...</div>;
@@ -98,55 +101,11 @@ export default function AdminDashboard() {
     { subject: "Science", percent: 15 },
     { subject: "English", percent: 10 },
   ];
-  const navItems = [
-  { id: 1, label: "Dashboard", path: "/admin" },
-  { id: 2, label: "Students", path: "/admin/students" },
-  { id: 3, label: "Exams", path: "/admin/exams" },
-  { id: 4, label: "Fees", path: "/admin/fees" },
-  { id: 5, label: "Faculty", path: "/admin/faculty" },
-  { id: 6, label: "Placements", path: "/admin/placements" },
-  { id: 7, label: "Reports", path: "/admin/reports" },
-  { id: 8, label: "Notifications", path: "/admin/notifications" },
-  { id: 9, label: "Timetable", path: "/admin/timetable" },
-];
 
   return (
     <div style={{ ...styles.app, background: dark ? "#111827" : "#f9fafb", color: dark ? "#fff" : "#000" }}>
       {/* Sidebar */}
-      <aside style={{ ...styles.sidebar, background: dark ? "#1f2937" : "#fff" }}>
-        <div style={styles.logoSection}>
-          <div style={{ ...styles.logoIcon, background: "#2563eb", color: "#fff" }}>🎓</div>
-          <h2 style={styles.logoText}>College Admin</h2>
-        </div>
-        {navItems.map((item) => (
-      <a key={item.id} href={item.path} style={styles.navItem}>
-        {item.label}
-      </a>
-    ))}
-    {/* ✅ Logout Button */}
-      <button
-        onClick={handleLogout}
-        style={{
-          marginTop: "auto",
-          padding: "10px 15px",
-          background: dark ? "#ef4444" : "#dc2626",
-          color: "#fff",
-          border: "none",
-          borderRadius: 6,
-          fontWeight: "bold",
-          cursor: "pointer",
-          transition: "0.3s",
-        }}
-        onMouseEnter={(e) =>
-          (e.target.style.background = dark ? "#dc2626" : "#b91c1c")
-        }
-        onMouseLeave={(e) =>
-          (e.target.style.background = dark ? "#ef4444" : "#dc2626")
-        }
-      >
-        🚪 Logout
-      </button>
-      </aside>
+      <Sidebar />
       {/* Main */}
       <main style={styles.main}>
         <header style={styles.header}>

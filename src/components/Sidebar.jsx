@@ -1,126 +1,113 @@
-// src/components/Sidebar.jsx
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // Assuming you have an AuthContext
 
-const Sidebar = ({ dark }) => {
+
+export default function Sidebar({ isOpen = true, onClose = () => {} }) {
   const navigate = useNavigate();
+  const { user, logout } = useAuth() || {}; // Get user and logout from context
 
-  const navItems = [
-  { id: 1, label: "Dashboard", path: "/admin" },
-  { id: 2, label: "Students", path: "/admin/students" },
-  { id: 3, label: "Exams", path: "/admin/exams" },
-  { id: 4, label: "Fees", path: "/admin/fees" },
-  { id: 5, label: "Faculty", path: "/admin/faculty" },
-  { id: 6, label: "Placements", path: "/admin/placements" },
-  { id: 7, label: "Reports", path: "/admin/reports" },
-  { id: 8, label: "Notifications", path: "/admin/notifications" },
-  { id: 9, label: "Timetable", path: "/admin/timetable" },
-  ];
-
-  // ✅ Logout handler
   const handleLogout = () => {
-    localStorage.removeItem("token"); // clear token
-    navigate("/");               // redirect to login
+    try {
+      // 1️⃣ The logout function from AuthContext handles clearing storage.
+      if (logout) {
+        logout();
+      } else {
+        // Fallback if context is not available
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+
+      // 2️⃣ Close sidebar if on mobile
+      if (onClose) onClose();
+
+      // 3️⃣ Redirect to home/login page
+      navigate("/");
+    } catch (err) {
+      console.error("❌ Logout error:", err);
+    }
   };
 
-  return (
-    <aside
-      style={{
-        width: 230,
-        padding: 20,
-        borderRight: "1px solid #e5e7eb",
-        boxShadow: "2px 0 5px rgba(0,0,0,0.05)",
-        background: dark ? "#1f2937" : "#fff",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        minHeight: "120vh",
-      }}
-    >
-      {/* Top Section */}
-      <div>
-        {/* Logo */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            marginBottom: 30,
-          }}
-        >
-          <div
-            style={{
-              padding: 8,
-              borderRadius: 8,
-              fontSize: 20,
-              background: "#2563eb",
-              color: "#fff",
-            }}
-          >
-            🎓
-          </div>
-          <h2
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: "#2563eb",
-            }}
-          >
-            College Admin
-          </h2>
-        </div>
+  const navLinks = [
+    { label: "Dashboard", path: "/admin", icon: "dashboard" },
+    { label: "Students", path: "/admin/students", icon: "groups" },
+    { label: "Exams", path: "/admin/exams", icon: "history_edu" },
+    { label: "Fees", path: "/admin/fees", icon: "receipt_long" },
+    { label: "Faculty", path: "/admin/faculty", icon: "school" },
+    { label: "Placements", path: "/admin/placements", icon: "work" },
+    { label: "Reports", path: "/admin/reports", icon: "analytics" },
+    {
+      label: "Notifications",
+      path: "/admin/notifications",
+      icon: "notifications",
+    },
+    { label: "Timetable", path: "/admin/timetable", icon: "calendar_month" },
+  ];
 
-        {/* Navigation Links */}
-        {navItems.map((item) => (
-          <a
-            key={item.id}
-            href={item.path}
-            style={{
-              display: "block",
-              padding: "10px 15px",
-              marginBottom: 8,
-              borderRadius: 6,
-              textDecoration: "none",
-              color: dark ? "#e5e7eb" : "#4b5563",
-              fontWeight: 500,
-              transition: "0.3s",
-            }}
-            onMouseEnter={(e) =>
-              (e.target.style.background = dark ? "#374151" : "#f0f9ff")
-            }
-            onMouseLeave={(e) =>
-              (e.target.style.background = "transparent")
-            }
-          >
-            {item.label}
-          </a>
-        ))}
-      </div>
-      {/* ✅ Logout Button */}
-      <button
-        onClick={handleLogout}
-        style={{
-          marginTop: "auto",
-          padding: "10px 15px",
-          background: dark ? "#ef4444" : "#dc2626",
-          color: "#fff",
-          border: "none",
-          borderRadius: 6,
-          fontWeight: "bold",
-          cursor: "pointer",
-          transition: "0.3s",
-        }}
-        onMouseEnter={(e) =>
-          (e.target.style.background = dark ? "#dc2626" : "#b91c1c")
-        }
-        onMouseLeave={(e) =>
-          (e.target.style.background = dark ? "#ef4444" : "#dc2626")
-        }
-      >
-        🚪 Logout
-      </button>
-    </aside>
-  );
-};
-
-export default Sidebar;
+   return (
+     <aside
+       className={`fixed md:relative z-50 inset-y-0 left-0 w-64 bg-background-light dark:bg-background-dark border-r border-primary/20 dark:border-primary/30 transform ${
+         isOpen ? "translate-x-0" : "-translate-x-full"
+       } md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col`}
+     >
+       {/* Sidebar Header */}
+       <div className="flex items-center justify-between p-4 border-b border-primary/20 dark:border-primary/30">
+         <div className="flex items-center gap-3">
+           <img
+             alt="Faculty Profile"
+             className="w-10 h-10 rounded-full object-cover"
+             src={user?.profilePicture || "https://via.placeholder.com/150"}
+           />
+           <div>
+             <h1 className="text-base font-semibold text-black dark:text-white">
+               {user?.name || "Admin"}
+             </h1>
+             <p className="text-xs text-black/60 dark:text-white/60">Admin</p>
+           </div>
+         </div>
+ 
+         {/* Close button for mobile */}
+         <button
+           onClick={onClose}
+           className="md:hidden text-black dark:text-white hover:text-primary transition"
+           aria-label="Close Sidebar"
+         >
+           <span className="material-symbols-outlined text-2xl">close</span>
+         </button>
+       </div>
+ 
+       {/* Sidebar Navigation */}
+       <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
+         {navLinks.map((link) => (
+           <NavLink
+             key={link.label}
+             to={link.path}
+             className={({ isActive }) =>
+               `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                 isActive
+                   ? "bg-primary/20 dark:bg-primary/30 text-primary"
+                   : "text-black/70 dark:text-white/70 hover:bg-primary/10 dark:hover:bg-primary/20"
+               }`
+             }
+           >
+             <span className="material-symbols-outlined text-lg">
+               {link.icon}
+             </span>
+             {link.label}
+           </NavLink>
+         ))}
+       </nav>
+ 
+       {/* Sidebar Footer */}
+       <div className="p-4 border-t border-primary/20 dark:border-primary/30">
+         <button
+           onClick={handleLogout}
+           className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black dark:text-white rounded-lg hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
+         >
+           <span className="material-symbols-outlined text-lg">logout</span>
+           Logout
+         </button>
+       </div>
+     </aside>
+   );
+ }
+ 

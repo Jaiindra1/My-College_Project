@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
+import StudentSidebar from "../../components/StudentSidebar";
 
-// ✅ Default fallback data (ensures UI never breaks)
+// ✅ Default fallback data
 const initialData = {
   marksTrend: {
     percentage: 85,
@@ -22,15 +24,28 @@ const initialData = {
 };
 
 export default function AnalyticsDashboard() {
+  const navigate = useNavigate();
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const studentData =
+    JSON.parse(localStorage.getItem("studentProfile")) ||
+    JSON.parse(localStorage.getItem("studentData"));
+
+  // ✅ Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("studentProfile");
+    localStorage.removeItem("studentData");
+    navigate("/");
+  };
+
+  // ✅ Fetch Analytics Data
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
         const { data: apiData } = await api.get("/analytics");
-
-        // ✅ Safe merging to avoid undefined structure
         setData({
           marksTrend: apiData?.marksTrend || initialData.marksTrend,
           attendanceVsGrades:
@@ -46,10 +61,8 @@ export default function AnalyticsDashboard() {
     fetchAnalytics();
   }, []);
 
-  // ✅ Defensive check for undefined data
+  // ✅ Prepare SVG chart safely
   const marksHistory = data?.marksTrend?.history || [];
-
-  // ✅ Generate SVG graph path safely
   const marksPath = marksHistory
     .map((point, index, arr) => {
       const x = (index / ((arr.length - 1) || 1)) * 472;
@@ -57,31 +70,21 @@ export default function AnalyticsDashboard() {
       return `${index === 0 ? "M" : "L"}${x} ${y}`;
     })
     .join(" ");
-
   const marksFillPath = marksHistory.length ? `${marksPath} V150 H0 Z` : "";
 
-  if (loading) {
+  if (loading)
     return (
       <div className="flex justify-center items-center h-screen text-gray-500">
         Loading Analytics...
       </div>
     );
-  }
-
-  if (!data?.marksTrend || !data?.attendanceVsGrades) {
-    return (
-      <div className="p-6 text-center text-gray-600 dark:text-gray-300">
-        No analytics data available.
-      </div>
-    );
-  }
 
   return (
-    <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
-      <div className="layout-container flex h-full grow flex-col">
-        {/* HEADER */}
-        <header className="flex items-center justify-between whitespace-nowrap border-b border-primary/20 dark:border-primary/30 px-10 py-3">
-          <div className="flex items-center gap-4">
+    <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
+      {/* ✅ Desktop Header */}
+      <header className="bg-card-light dark:bg-card-dark border-b sticky top-0 z-10 hidden md:block">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
             <div className="size-6 text-primary">
               <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -90,146 +93,182 @@ export default function AnalyticsDashboard() {
                 ></path>
               </svg>
             </div>
-            <h2 className="text-lg font-bold">Academics</h2>
+            <h1 className="text-xl font-bold">Academics Analytics</h1>
           </div>
 
-          <div className="flex flex-1 justify-end gap-8">
-            <nav className="flex items-center gap-6">
-              <a className="text-sm font-medium hover:text-primary" href="/student">
-                Dashboard
-              </a>
-              <a className="text-sm font-medium hover:text-primary" href="/student/courses">
-                Courses
-              </a>
-              <a className="text-sm font-medium hover:text-primary" href="/student/calendar">
-                Calendar
-              </a>
-              <a className="text-sm font-medium hover:text-primary" href="/student/messages">
-                Messages
-              </a>
-              <a className="text-sm font-medium hover:text-primary" href="/student/profile">
-                Settings
-              </a>
-            </nav>
+          <nav className="flex items-center gap-6 text-sm font-medium">
+            <a href="/student" className="hover:text-primary">Dashboard</a>
+            <a href="/student/attendance" className="hover:text-primary">Attendance</a>
+            <a href="/student/notifications" className="hover:text-primary">Notifications</a>
+            <a href="/student/placements" className="hover:text-primary">Placements</a>
+            <a href="/student/exams" className="hover:text-primary">Exams</a>
+            <a
+              href="/student/analytics"
+              className="text-primary font-bold border-b-2 border-primary pb-1"
+            >
+              Analytics
+            </a>
+            <a href="/student/helpdesk" className="hover:text-primary">HelpDesk</a>
+            <a href="/student/fee" className="hover:text-primary">Fee</a>
+            <button
+              onClick={handleLogout}
+              className="text-red-600 hover:text-red-500 font-medium"
+            >
+              Logout
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* ✅ Mobile Sidebar */}
+      <div className="md:hidden">
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="h-full w-3/4 bg-card-light dark:bg-card-dark shadow-lg transition-transform duration-300 ease-in-out">
+              <StudentSidebar
+                name={studentData?.name}
+                rollNo={studentData?.roll_no}
+                onLogout={() => {
+                  handleLogout();
+                  setSidebarOpen(false);
+                }}
+                onLinkClick={() => setSidebarOpen(false)}
+              />
+            </div>
             <div
-              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-              style={{
-                backgroundImage:
-                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCO6tguW71ynmmq-2_iWOHZt41mUn-FDamQegnwiR3K8NW14gAn6SIlgKA6cCzqwpfD9V_qTJFM2dCiBKT5iL8yXqOKUvjD2dbF6wI0egVLJFPseeAByNTC4ICrwE6M1SisyIf3QNHpdQzgFmQsaA4Fzb9_0iZ65l_zf-BtGRIN5FdCHbu7F7s0lhsBBuO-kSBgmf_RvCSEt9B_8OVDWRThlT5gUXM9pYtZF5IxHew8Mn-xvlyHGd0LdqQ7jBC13kcQMmjZ9U9ZfHs")',
-              }}
-            ></div>
+              className="flex-1 bg-black/50"
+              onClick={() => setSidebarOpen(false)}
+            />
           </div>
-        </header>
+        )}
 
-        {/* MAIN */}
-        <main className="flex flex-1 justify-center py-8 px-4">
-          <div className="layout-content-container flex flex-col w-full max-w-6xl">
-            <div className="flex flex-wrap justify-between gap-4 p-4">
-              <h1 className="text-4xl font-bold tracking-tight">Analytics</h1>
-            </div>
-
-            {/* ANALYTICS CARDS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-4">
-              {/* 📈 MARKS TREND */}
-              <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/30 rounded-lg p-6">
-                <div className="flex flex-col gap-1">
-                  <p className="text-base font-medium">Marks Trend</p>
-                  <p className="text-4xl font-bold">{data.marksTrend.percentage}%</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-black/60 dark:text-white/60">
-                      Last 6 Semesters
-                    </p>
-                    <p className="text-sm font-medium text-primary">
-                      +{data.marksTrend.change}%
-                    </p>
-                  </div>
-                </div>
-
-                {/* SVG GRAPH */}
-                <div className="flex-1">
-                  <svg
-                    fill="none"
-                    height="100%"
-                    preserveAspectRatio="none"
-                    viewBox="0 0 472 150"
-                    width="100%"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d={marksFillPath} fill="url(#paint0_linear_marks)" />
-                    <path
-                      className="text-primary"
-                      d={marksPath}
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeWidth="3"
-                    />
-                    <defs>
-                      <linearGradient
-                        gradientUnits="userSpaceOnUse"
-                        id="paint0_linear_marks"
-                        x1="236"
-                        x2="236"
-                        y1="1"
-                        y2="149"
-                      >
-                        <stop
-                          className="text-primary/20 dark:text-primary/30"
-                          stopColor="currentColor"
-                        />
-                        <stop
-                          className="text-primary/0"
-                          offset="1"
-                          stopColor="currentColor"
-                          stopOpacity="0"
-                        />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
-
-                <div className="flex justify-around border-t border-primary/20 dark:border-primary/30 pt-4">
-                  {["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Sem 6"].map((sem) => (
-                    <p key={sem} className="text-xs font-bold tracking-wider">
-                      {sem}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              {/* 📊 ATTENDANCE VS GRADES */}
-              <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/30 rounded-lg p-6">
-                <div className="flex flex-col gap-1">
-                  <p className="text-base font-medium">Attendance vs Grades</p>
-                  <p className="text-4xl font-bold">
-                    {data.attendanceVsGrades.averageGrade}%
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-black/60 dark:text-white/60">All Subjects</p>
-                    <p className="text-sm font-medium text-primary">
-                      +{data.attendanceVsGrades.change}%
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-5 gap-4 items-end justify-items-center flex-1 min-h-[200px] border-t border-primary/20 dark:border-primary/30 pt-4">
-                  {data.attendanceVsGrades.subjects.map((subject, i) => (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center justify-end w-full h-full gap-2"
-                    >
-                      <div
-                        className="w-full bg-primary/20 dark:bg-primary/30 rounded-t"
-                        style={{ height: `${subject.grade}%` }}
-                      ></div>
-                      <p className="text-xs font-bold tracking-wider">{subject.name}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+        <div className="flex items-center justify-between p-4 bg-card-light dark:bg-card-dark border-b">
+          <h1 className="text-lg font-bold text-primary">📊 Analytics</h1>
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-md hover:bg-primary/10 transition-all"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 6h16M4 12h16m-7 6h7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+              ></path>
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* ✅ Main Analytics Section */}
+      <main className="flex flex-1 justify-center py-8 px-4">
+        <div className="layout-content-container flex flex-col w-full max-w-6xl">
+          <div className="flex flex-wrap justify-between gap-4 p-4">
+            <h1 className="text-4xl font-bold tracking-tight">Analytics</h1>
+          </div>
+
+          {/* ANALYTICS CARDS */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-4">
+            {/* 📈 MARKS TREND */}
+            <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/30 rounded-lg p-6">
+              <div className="flex flex-col gap-1">
+                <p className="text-base font-medium">Marks Trend</p>
+                <p className="text-4xl font-bold">{data.marksTrend.percentage}%</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-black/60 dark:text-white/60">
+                    Last 6 Semesters
+                  </p>
+                  <p className="text-sm font-medium text-primary">
+                    +{data.marksTrend.change}%
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <svg
+                  fill="none"
+                  height="100%"
+                  preserveAspectRatio="none"
+                  viewBox="0 0 472 150"
+                  width="100%"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d={marksFillPath} fill="url(#paint0_linear_marks)" />
+                  <path
+                    className="text-primary"
+                    d={marksPath}
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeWidth="3"
+                  />
+                  <defs>
+                    <linearGradient
+                      gradientUnits="userSpaceOnUse"
+                      id="paint0_linear_marks"
+                      x1="236"
+                      x2="236"
+                      y1="1"
+                      y2="149"
+                    >
+                      <stop className="text-primary/20" stopColor="currentColor" />
+                      <stop offset="1" stopColor="currentColor" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              <div className="flex justify-around border-t border-primary/20 dark:border-primary/30 pt-4">
+                {["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Sem 6"].map((sem) => (
+                  <p key={sem} className="text-xs font-bold tracking-wider">
+                    {sem}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            {/* 📊 ATTENDANCE VS GRADES */}
+            <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/30 rounded-lg p-6">
+              <div className="flex flex-col gap-1">
+                <p className="text-base font-medium">Attendance vs Grades</p>
+                <p className="text-4xl font-bold">
+                  {data.attendanceVsGrades.averageGrade}%
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-black/60 dark:text-white/60">
+                    All Subjects
+                  </p>
+                  <p className="text-sm font-medium text-primary">
+                    +{data.attendanceVsGrades.change}%
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-5 gap-4 items-end justify-items-center flex-1 min-h-[200px] border-t border-primary/20 dark:border-primary/30 pt-4">
+                {data.attendanceVsGrades.subjects.map((subject, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col items-center justify-end w-full h-full gap-2"
+                  >
+                    <div
+                      className="w-full bg-primary/20 dark:bg-primary/30 rounded-t"
+                      style={{ height: `${subject.grade}%` }}
+                    ></div>
+                    <p className="text-xs font-bold tracking-wider">
+                      {subject.name}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
