@@ -1,313 +1,268 @@
-import React, { useEffect, useState } from "react";
-import axios from 'axios';
-import {
-  Chart as ChartJS,
-  LineElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
-import Sidebar from "../../components/Sidebar";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import FacultySidebar from "../../components/FacultySidebar";
 import api from "../../api/axiosInstance";
 
-// Register chart components
-ChartJS.register(LineElement, BarElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
-
-export default function AdminDashboard() {
-  const [data, setData] = useState(null);
+export default function FacultyDashboard() {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [faculty, setFaculty] = useState(null);
+  const [schedule, setSchedule] = useState([]);
   const [attendanceSummary, setAttendanceSummary] = useState([]);
-  const [error, setError] = useState("");
-  const [dark, setDark] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
-
-  // ✅ Logout Function
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // remove token
-    localStorage.removeItem("user"); // remove user info
-    window.location.href = "/"; // redirect to login page
-  };
-
- // ✅ Fetch Dashboard Stats
-useEffect(() => {
-  const fetchDashboardStats = async () => {
+  // 🧠 Safe User Fetch
+  const getUserId = () => {
     try {
-      const { data } = await api.get("/dashboard/admin", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setData(data);
-    } catch (err) {
-      console.error("❌ Error fetching dashboard:", err);
+      const user = JSON.parse(localStorage.getItem("user"));
+      return user?.user_id;
+    } catch {
+      return null;
     }
   };
 
-  if (token) fetchDashboardStats();
-}, [token]);
+  const navigate = useNavigate();
 
-// ✅ Fetch Attendance Summary
-useEffect(() => {
-  const fetchAttendanceSummary = async () => {
-    try {
-      const { data } = await api.get("/reports/attendance/summary", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  useEffect(() => {
+    const facultyId = getUserId();
+    if (!facultyId) {
+      console.warn("⚠️ No faculty user found in localStorage");
+      setLoading(false);
+      return;
+    }
 
-      console.log("📌 Attendance Summary API:", data);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [facultyRes, scheduleRes, attendanceRes, notifyRes] = await Promise.all([
+          api.get(`/faculty/${facultyId}`),
+          api.get(`/faculty/${facultyId}/timetable`),
+          api.get(`/faculty/${facultyId}/attendance-summary`),
+          api.get(`/notifications/faculty`),
+        ]);
 
-      if (Array.isArray(data)) {
-        setAttendanceSummary(data);
-      } else if (data.data && Array.isArray(data.data)) {
-        setAttendanceSummary(data.data);
-      } else {
-        setAttendanceSummary([]);
-        setError("Attendance data not found or invalid format.");
+        // ✅ Normalize responses
+        setFaculty(facultyRes.data || {});
+        setSchedule(Array.isArray(scheduleRes.data) ? scheduleRes.data : []);
+
+        const summaryData = attendanceRes.data;
+        if (Array.isArray(summaryData)) {
+          setAttendanceSummary(summaryData);
+        } else if (summaryData && Array.isArray(summaryData.attendance_summary)) {
+          setAttendanceSummary(summaryData.attendance_summary);
+        } else if (summaryData) {
+          setAttendanceSummary([summaryData]);
+        } else {
+          setAttendanceSummary([]);
+        }
+
+        setNotifications(Array.isArray(notifyRes.data) ? notifyRes.data : []);
+      } catch (err) {
+        console.error("❌ Faculty Dashboard Error:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("❌ Error fetching attendance summary:", err);
-      setError("Failed to load attendance data.");
-    }
-  };
+    };
 
-  if (token) fetchAttendanceSummary();
-}, [token]);
+    fetchDashboardData();
+  }, []);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-gray-500">
+        Loading Faculty Dashboard...
+      </div>
+    );
+  }
 
-  if (!data) return <div style={styles.loading}>Loading Dashboard...</div>;
-
-  const safeAttendance = Array.isArray(attendanceSummary) ? attendanceSummary : [];
-
-  const attendanceTrend = {
-    labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-    datasets: [
-      {
-        label: "Attendance %",
-        data: [70, 75, 80, data.avg_attendance],
-        borderColor: "#2563eb",
-        backgroundColor: "rgba(37,99,235,0.15)",
-        fill: true,
-        tension: 0.3,
-      },
-    ],
-  };
-
-  const examPerformance = {
-    labels: ["Maths", "C Language", "English", "Physics"],
-    datasets: [
-      {
-        label: "Pass %",
-        data: [60, 75, 80, 90],
-        backgroundColor: ["#93c5fd", "#60a5fa", "#3b82f6", "#2563eb"],
-      },
-    ],
-  };
-
-  const backlogData = [
-    { subject: "Math", percent: 25 },
-    { subject: "Science", percent: 15 },
-    { subject: "English", percent: 10 },
-  ];
-  const navItems = [
-  { id: 1, label: "Dashboard", path: "/faculty" },
-  { id: 2, label: "Students", path: "/faculty/students" },
-  { id: 3, label: "Exams", path: "/faculty/exams" },
-  { id: 4, label: "Fees", path: "/faculty/fees" },
-  { id: 5, label: "Faculty", path: "/faculty/faculty" },
-  { id: 6, label: "Placements", path: "/faculty/placements" },
-  { id: 7, label: "Reports", path: "/faculty/reports" },
-  { id: 8, label: "Notifications", path: "/faculty/notifications" },
-  { id: 9, label: "Timetable", path: "/faculty/timetable" },
-];
+  // 🧮 Compute average attendance safely
+  const averageAttendance =
+    Array.isArray(attendanceSummary) && attendanceSummary.length > 0
+      ? (
+          attendanceSummary.reduce((sum, a) => sum + (a.percentage || 0), 0) /
+          attendanceSummary.length
+        ).toFixed(1)
+      : 0;
 
   return (
-    <div style={{ ...styles.app, background: dark ? "#111827" : "#f9fafb", color: dark ? "#fff" : "#000" }}>
-      {/* Sidebar */}
-      <aside style={{ ...styles.sidebar, background: dark ? "#1f2937" : "#fff" }}>
-        <div style={styles.logoSection}>
-          <div style={{ ...styles.logoIcon, background: "#2563eb", color: "#fff" }}>🎓</div>
-          <h2 style={styles.logoText}>College Admin</h2>
-        </div>
-        {navItems.map((item) => (
-      <a key={item.id} href={item.path} style={styles.navItem}>
-        {item.label}
-      </a>
-    ))}
-    {/* ✅ Logout Button */}
-      <button
-        onClick={handleLogout}
-        style={{
-          marginTop: "auto",
-          padding: "10px 15px",
-          background: dark ? "#ef4444" : "#dc2626",
-          color: "#fff",
-          border: "none",
-          borderRadius: 6,
-          fontWeight: "bold",
-          cursor: "pointer",
-          transition: "0.3s",
-        }}
-        onMouseEnter={(e) =>
-          (e.target.style.background = dark ? "#dc2626" : "#b91c1c")
-        }
-        onMouseLeave={(e) =>
-          (e.target.style.background = dark ? "#ef4444" : "#dc2626")
-        }
-      >
-        🚪 Logout
-      </button>
-      </aside>
-      {/* Main */}
-      <main style={styles.main}>
-        <header style={styles.header}>
-          <h1 style={styles.pageTitle}>Dashboard</h1>
-          <button
-            onClick={() => setDark(!dark)}
-            style={{
-              ...styles.toggleBtn,
-              background: dark ? "#2563eb" : "#e5e7eb",
-              color: dark ? "#fff" : "#000",
-            }}
-          >
-            {dark ? "☀️ Light" : "🌙 Dark"}
-          </button>
+    <div className="flex h-screen bg-background-light dark:bg-background-dark font-display">
+      {/* Sidebar for mobile/desktop */}
+      <FacultySidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Main Section */}
+      <main className="flex-1 flex flex-col overflow-y-auto">
+        {/* Header */}
+        <header className="flex items-center justify-between p-4 border-b border-primary/20 dark:border-primary/30 sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm z-40">
+          <div className="flex items-center gap-2">
+            {/* Sidebar Toggle for Mobile */}
+            <button
+              onClick={() => setSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-full text-black/70 dark:text-white/70 hover:bg-primary/10 dark:hover:bg-primary/20 md:hidden"
+            >
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            <h2 className="text-lg font-bold text-black dark:text-white">
+              Faculty Dashboard
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button className="p-2 rounded-full text-black/70 dark:text-white/70 hover:bg-primary/10 dark:hover:bg-primary/20 relative">
+              <span className="material-symbols-outlined">notifications</span>
+              {notifications.length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </button>
+            <button onClick={() => navigate('/faculty/FacultyProfile')} className="w-10 h-10 rounded-full overflow-hidden">
+              <img
+                alt="Faculty Avatar"
+                className="w-full h-full rounded-full object-cover"
+                src={faculty?.picture || "https://lh3.googleusercontent.com/aida-public/AB6AXuAat3m8eIfH3Mttu0dw8hTAYE5mEaxCde6Qf2B50Xo2WDJCWUbZ2NCqzNvABuAOMBWS8jr93AWRje7XR8hdSpva2fYLHb_lWiLLUIdOjbIZ5JAdRaQTJOPBuabmGXvbvxKR5QIlibvadkSmahyLRKaAXunvf87D1dmM2UdgkTIbVzeOhf86R_8m56LtTcadIDYs3RPryyS6fa3WOuyTn_hXA-KxyUt3r6wlZC3znF8XSBGKVwXb54by3xLCiYuBGeEwbWXjQPAwbS4"}
+              />
+            </button>
+          </div>
         </header>
 
-        {/* Stats */}
-        <div style={styles.statsGrid}>
-          <Stat label="Total Students" value={data.total_students} change="+10%" />
-          <Stat label="Faculty" value={data.total_faculty} change="+5%" />
-          <Stat label="Pending Fees" value={`$${data.pending_fees}`} change="-15%" negative />
-          <Stat label="Students Placed" value={data.students_placed} change="+20%" />
-          <Stat label="Avg Attendance" value={`${data.avg_attendance}%`} change="+2%" />
-          <Stat label="Notifications" value={data.recent_notifications.length} change="+5%" />
-        </div>
+        {/* Main Dashboard Content */}
+        <div className="p-6 space-y-8">
+          {/* Welcome Section */}
+          <div>
+            <h2 className="text-3xl font-bold text-black dark:text-white">
+              Welcome back, {faculty?.name || "Professor"}
+            </h2>
+            <p className="text-sm text-black/60 dark:text-white/60">
+              Department of {faculty?.department_name || "IT"}
+            </p>
+          </div>
 
-        {/* Charts */}
-        <h2 style={styles.sectionTitle}>Analytics</h2>
-        <div style={styles.analyticsGrid}>
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Attendance Trends</h3>
-            <Line data={attendanceTrend} options={{ responsive: true }} />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { title: "Classes Assigned", value: faculty?.subject_count || 0 },
+              { title: "Students Enrolled", value: faculty?.student_count || 0 },
+              {
+                title: "Attendance Pending",
+                value: Array.isArray(attendanceSummary)
+                  ? attendanceSummary.filter((a) => a.percentage < 80).length
+                  : 0,
+              },
+              { title: "Avg Attendance %", value: `${averageAttendance}%` },
+            ].map((stat) => (
+              <div
+                key={stat.title}
+                className="bg-primary/10 dark:bg-primary/20 p-6 rounded-xl"
+              >
+                <p className="text-base font-medium text-black dark:text-white">
+                  {stat.title}
+                </p>
+                <p className="text-3xl font-bold text-primary">{stat.value}</p>
+              </div>
+            ))}
           </div>
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Exam Performance</h3>
-            <Bar data={examPerformance} options={{ responsive: true }} />
-          </div>
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Semester-wise Attendance</h3>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {safeAttendance.length > 0 ? (
-              <Bar
-                data={{
-                  labels: safeAttendance.map((r) => `Sem-${r.semester || r.sem}`),
-                  datasets: [
-                    {
-                      label: "Avg Attendance %",
-                      data: safeAttendance.map((r) => r.avg_attendance || r.average),
-                      backgroundColor: "#2563eb",
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
-                  plugins: { legend: { display: true } },
-                  scales: { y: { beginAtZero: true, max: 100 } },
-                }}
-              />
-            ) : (
-              <p>No attendance data available.</p>
-            )}
-          </div>
-        </div>
 
-        {/* Notifications */}
-        <h2 style={styles.sectionTitle}>Recent Notifications</h2>
-        <div style={styles.tableWrapper}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Title</th>
-                <th style={styles.th}>Audience</th>
-                <th style={styles.th}>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.recent_notifications.map((n, i) => (
-                <tr key={i} style={styles.tr}>
-                  <td style={styles.td}>{n.title}</td>
-                  <td style={styles.td}>{n.audience}</td>
-                  <td style={styles.td}>{new Date(n.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-            </table>
+          {/* Quick Actions */}
+          <div>
+            <h3 className="text-xl font-bold text-black dark:text-white mb-4">
+              Quick Actions
+            </h3>
+            <div className="flex flex-wrap gap-4">
+              <a
+                href="/faculty/FacultyAttendance"
+                className="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90"
+              >
+                Take Attendance
+              </a>
+              <a
+                href="/faculty/FacultyAttendanceAnalytics"
+                className="px-6 py-2 bg-primary/20 dark:bg-primary/30 text-primary font-bold rounded-lg hover:bg-primary/30 dark:hover:bg-primary/40"
+              >
+                View Attendance Analytics
+              </a>
+              <button className="px-6 py-2 bg-primary/10 dark:bg-primary/20 text-primary font-bold rounded-lg hover:bg-primary/20">
+                Upload Exam Paper
+              </button>
+            </div>
           </div>
-        </main>
-      </div>
-        );
-    }
-        // ✅ Stat Card Component
-        function Stat({ label, value, change, negative }) {
-          return (
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>{label}</p>
-              <p style={styles.statValue}>{value}</p>
-              {change && (
-                <span style={{ fontSize: 12, color: negative ? "#ef4444" : "#10b981", fontWeight: 500 }}>{change}</span>
+
+          {/* Grid Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Today’s Schedule */}
+            <div className="bg-card-light dark:bg-card-dark p-6 rounded-lg shadow-sm w-90 max-w-sm mx-auto">
+              <h2 className="text-xl font-bold mb-4">📅 Today’s Schedule</h2>
+              {schedule.length > 0 ? (
+                <table className="w-full text-left border">
+                  <thead className="bg-gray-100 dark:bg-gray-800">
+                    <tr>
+                      <th className="p-2 border">Period</th>
+                      <th className="p-2 border">Subject</th>
+                      <th className="p-2 border">Semester</th>
+                      <th className="p-2 border">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {schedule.map((row) => (
+                      <tr
+                        key={row.period_no}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <td className="p-2 border text-center">{row.period_no}</td>
+                        <td className="p-2 border">{row.subject_name}</td>
+                        <td className="p-2 border">{row.semester}</td>
+                        <td className="p-2 border">
+                          {row.start_time} - {row.end_time}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-500">No classes scheduled today.</p>
               )}
             </div>
-          );
-        }
-// ✅ Styles
-const styles = {
-  app: { display: "flex", height: "100vh", fontFamily: "Inter, Arial, sans-serif" },
-  sidebar: { width: 230, padding: 20, borderRight: "1px solid #e5e7eb", boxShadow: "2px 0 5px rgba(0,0,0,0.05)" },
-  logoSection: { display: "flex", alignItems: "center", gap: 10, marginBottom: 30 },
-  logoIcon: { padding: 8, borderRadius: 8, fontSize: 20 },
-  logoText: { fontSize: 20, fontWeight: "bold", color: "#2563eb" },
-  navItem: {
-    display: "block",
-    padding: "10px 15px",
-    marginBottom: 8,
-    borderRadius: 6,
-    textDecoration: "none",
-    color: "#4b5563",
-    fontWeight: 500,
-    transition: "0.3s",
-  },
-  main: { flex: 1, padding: 30, overflowY: "auto" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 25 },
-  pageTitle: { fontSize: 28, fontWeight: "bold", color: "#1f2937" },
-  toggleBtn: { padding: "6px 14px", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 500 },
-  statsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px,1fr))", gap: 20, marginBottom: 30 },
-  statCard: {
-    background: "#fff",
-    padding: 20,
-    borderRadius: 10,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-  statLabel: { fontSize: 14, color: "#6b7280" },
-  statValue: { fontSize: 26, fontWeight: "bold", color: "#111827" },
-  sectionTitle: { fontSize: 20, fontWeight: "600", marginBottom: 20, marginTop: 10, color: "#374151" },
-  analyticsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px,1fr))", gap: 20, marginBottom: 30 },
-  card: {
-    background: "#fff",
-    padding: 20,
-    borderRadius: 10,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-  },
-  cardTitle: { fontSize: 16, fontWeight: 600, marginBottom: 12, color: "#374151" },
-  tableWrapper: { overflowX: "auto", background: "#fff", borderRadius: 10, boxShadow: "0 2px 6px rgba(0,0,0,0.08)" },
-  table: { width: "100%", borderCollapse: "collapse" },
-  th: { textAlign: "left", padding: 12, background: "#f3f4f6", fontWeight: 600, fontSize: 14 },
-  td: { padding: 12, borderTop: "1px solid #e5e7eb", fontSize: 14, color: "#374151" },
-  tr: { background: "#fff" },
-  loading: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontSize: 24 },
-};
-
+            {/* Attendance Summary */}
+            <div className="bg-card-light dark:bg-card-dark p-6 rounded-lg shadow-sm w-90 max-w-sm mx-auto">
+              <h2 className="text-xl font-bold mb-4">📊 Attendance Summary</h2>
+              {Array.isArray(attendanceSummary) && attendanceSummary.length > 0 ? (
+                attendanceSummary.map((item) => (
+                  <div key={item.subject_id} className="mb-4">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{item.subject_name}</span>
+                      <span className="font-medium">{item.percentage}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded">
+                      <div
+                        className="h-2 bg-primary rounded"
+                        style={{ width: `${item.percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No attendance records yet.</p>
+              )}
+            </div>
+            {/* Notifications Section */}
+            <div className="bg-card-light dark:bg-card-dark p-6 rounded-lg shadow-sm w-90 max-w-sm mx-auto">
+            <h2 className="text-xl font-bold mb-4">🔔 Recent Notifications</h2>
+            {notifications.length > 0 ? (
+              <ul className="space-y-3">
+                {notifications.map((n) => (
+                  <li key={n.notification_id} className="border-b pb-2">
+                    <p className="font-medium">{n.title}</p>
+                    <p className="text-sm text-gray-500">{n.message}</p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(n.created_at).toLocaleString()}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No recent notifications.</p>
+            )}
+          </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
