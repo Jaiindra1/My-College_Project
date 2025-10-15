@@ -32,48 +32,48 @@ export default function AdminDashboard() {
     window.location.href = "/"; // redirect to login page
   };
 
-    // ✅ Fetch Dashboard Stats
-  useEffect(() => {
-    const fetchDashboardStats = async () => {
-      try {
-        const { data } = await api.get("/dashboard/admin", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setData(data);
-      } catch (err) {
-        console.error("❌ Error fetching dashboard:", err);
+ // ✅ Fetch Dashboard Stats
+useEffect(() => {
+  const fetchDashboardStats = async () => {
+    try {
+      const { data } = await api.get("/dashboard/admin", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setData(data);
+    } catch (err) {
+      console.error("❌ Error fetching dashboard:", err);
+    }
+  };
+
+  if (token) fetchDashboardStats();
+}, [token]);
+
+// ✅ Fetch Attendance Summary
+useEffect(() => {
+  const fetchAttendanceSummary = async () => {
+    try {
+      const { data } = await api.get("/reports/attendance/summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("📌 Attendance Summary API:", data);
+
+      if (Array.isArray(data)) {
+        setAttendanceSummary(data);
+      } else if (data.data && Array.isArray(data.data)) {
+        setAttendanceSummary(data.data);
+      } else {
+        setAttendanceSummary([]);
+        setError("Attendance data not found or invalid format.");
       }
-    };
-  
-    if (token) fetchDashboardStats();
-  }, [token]);
-  
-  // ✅ Fetch Attendance Summary
-  useEffect(() => {
-    const fetchAttendanceSummary = async () => {
-      try {
-        const { data } = await api.get("/reports/attendance/summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-  
-        console.log("📌 Attendance Summary API:", data);
-  
-        if (Array.isArray(data)) {
-          setAttendanceSummary(data);
-        } else if (data.data && Array.isArray(data.data)) {
-          setAttendanceSummary(data.data);
-        } else {
-          setAttendanceSummary([]);
-          setError("Attendance data not found or invalid format.");
-        }
-      } catch (err) {
-        console.error("❌ Error fetching attendance summary:", err);
-        setError("Failed to load attendance data.");
-      }
-    };
-  
-    if (token) fetchAttendanceSummary();
-  }, [token]);
+    } catch (err) {
+      console.error("❌ Error fetching attendance summary:", err);
+      setError("Failed to load attendance data.");
+    }
+  };
+
+  if (token) fetchAttendanceSummary();
+}, [token]);
 
 
   if (!data) return <div style={styles.loading}>Loading Dashboard...</div>;
@@ -111,15 +111,15 @@ export default function AdminDashboard() {
     { subject: "English", percent: 10 },
   ];
   const navItems = [
-  { id: 1, label: "Dashboard", path: "/admin" },
-  { id: 2, label: "Students", path: "/admin/students" },
-  { id: 3, label: "Exams", path: "/admin/exams" },
-  { id: 4, label: "Fees", path: "/admin/fees" },
-  { id: 5, label: "Faculty", path: "/admin/faculty" },
-  { id: 6, label: "Placements", path: "/admin/placements" },
-  { id: 7, label: "Reports", path: "/admin/reports" },
-  { id: 8, label: "Notifications", path: "/admin/notifications" },
-  { id: 9, label: "Timetable", path: "/admin/timetable" },
+  { id: 1, label: "Dashboard", path: "/faculty" },
+  { id: 2, label: "Students", path: "/faculty/students" },
+  { id: 3, label: "Exams", path: "/faculty/exams" },
+  { id: 4, label: "Fees", path: "/faculty/fees" },
+  { id: 5, label: "Faculty", path: "/faculty/faculty" },
+  { id: 6, label: "Placements", path: "/faculty/placements" },
+  { id: 7, label: "Reports", path: "/faculty/reports" },
+  { id: 8, label: "Notifications", path: "/faculty/notifications" },
+  { id: 9, label: "Timetable", path: "/faculty/timetable" },
 ];
 
   return (
