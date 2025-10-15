@@ -4,10 +4,6 @@ import api from "../../api/axiosInstance";
 import StudentSidebar from "../../components/StudentSidebar";
 
 export default function FeeManagement() {
-
-  const studentData = JSON.parse(localStorage.getItem("studentProfile"));
-  const studentId = studentData?.student_id;
-
   const navigate = useNavigate();
   const studentData =
     JSON.parse(localStorage.getItem("studentProfile")) ||
