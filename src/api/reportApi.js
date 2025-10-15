@@ -1,8 +1,7 @@
-<<<<<<< HEAD
+
 const API_URL = "https://my-college-project-server.onrender.com/api/reports";
-=======
+
 const API_URL = "https://my-college-project-server.onrender.com/reports";
->>>>>>> 84de641 (Refactor: replaced fetch with Axios + minor component updates)
 
 export async function fetchAttendanceSummary(token) {
   const res = await fetch(`${API_URL}/attendance/summary`, {
