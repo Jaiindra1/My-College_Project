@@ -93,7 +93,7 @@ const StudentList = () => {
             🎓 Students
           </h2>
           <Link
-            to="/students/add"
+            to="/admin/students/add"
             className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-blue-700 transition duration-300"
           >
             ➕ Add Student
