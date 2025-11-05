@@ -22,7 +22,7 @@ export default function PlacementsDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Company Drives */}
           <Link
-            to="/placements/companies"
+            to="/admin/placements/companies"
             className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg p-6 border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1"
           >
             <div className="flex items-center justify-between mb-4">
