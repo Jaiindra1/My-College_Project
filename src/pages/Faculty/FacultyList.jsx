@@ -60,13 +60,14 @@ export default function FacultyList() {
             <table className="w-full text-sm text-left bg-white dark:bg-background-dark/60">
               {/* Table Header */}
               <thead>
-                <tr className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-xs uppercase tracking-wide">
+                <tr style={{ textAlign: "center"}} className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-xs uppercase tracking-wide">
                   <th className="px-6 py-4">ID</th>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Email</th>
                   <th className="px-6 py-4">Department</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">Action</th>
+                  <th className="px-6 py-4">Delete</th>
                 </tr>
               </thead>
 
@@ -74,7 +75,7 @@ export default function FacultyList() {
               <tbody>
                 {faculty.length > 0 ? (
                   faculty.map((f, idx) => (
-                    <tr
+                    <tr style={{ textAlign: "center"}}
                       key={f.faculty_id}
                       className={`border-b border-blue-100 dark:border-blue-800 transition-colors duration-200 ${
                         idx % 2 === 0
@@ -96,29 +97,31 @@ export default function FacultyList() {
                       </td>
                       <td className="px-6 py-3">
                         <span
-                          className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm ${
-                            f.status !== "active"
-                              ? "bg-green-100 text-green-700 dark:bg-green-800/40 dark:text-green-300"
-                              : "bg-purple-100 text-purple-700 dark:bg-purple-800/40 dark:text-purple-300"
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full shadow-sm ${
+                            f.status === "active"
+                              ? "bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-300"
+                              : "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300"
                           }`}
                         >
-                          {f.status}
+                          {f.status === "active" ? "❌" : "✅"}
+                          <span className="capitalize">{f.status}</span>
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-right space-x-3">
+                      <td className="px-6 py-3">
                         <Link
-                          to={`/faculty/edit/${f.faculty_id}`}
-                          className="px-3 py-1 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white shadow-sm"
+                          to={`/admin/faculty/edit/${f.faculty_id}`}
+                          className="px-3 py-1 text-xls border-bottom-2px font-medium text-black shadow-sm"
                         >
                           Edit
                         </Link>
-                        <button
+                        
+                      </td>
+                      <td><button
                           onClick={() => handleDelete(f.faculty_id)}
                           className="px-3 py-1 text-xs font-medium rounded-md bg-red-500 hover:bg-red-600 text-white shadow-sm"
                         >
                           Delete
-                        </button>
-                      </td>
+                        </button></td>
                     </tr>
                   ))
                 ) : (
