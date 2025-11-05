@@ -27,7 +27,6 @@ ChartJS.register(
 
 export default function AdminReports() {
   const token = localStorage.getItem("token");
-
   const [attendanceSummary, setAttendanceSummary] = useState([]);
   const [backlogSummary, setBacklogSummary] = useState([]);
   const [examPerformance, setExamPerformance] = useState([]);
@@ -35,6 +34,7 @@ export default function AdminReports() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [loading, setLoading] = useState(true);
   const [subjects, setSubjects] = useState([]);
+  const [displayData, setDisplayData] = useState([]);
 
   // ✅ Fetch Reports
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function AdminReports() {
           api.get("/reports/attendance/summary", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          api.get("/reports/backlogs/summary", {
+          api.get("/reports/backlog-analysis", {
             headers: { Authorization: `Bearer ${token}` },
           }),
           api.get("/reports/exam-performance", {
@@ -81,6 +81,7 @@ export default function AdminReports() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSubjectDetails(res.data || []);
+      console.log(res.data);
     } catch (err) {
       console.error(
         "❌ Error fetching subject-wise attendance:",
@@ -103,8 +104,8 @@ export default function AdminReports() {
         data: attendanceSummary.map((r) => r.average),
         backgroundColor: "#2563eb",
         borderRadius: 6,
-        barPercentage: 0.4,
-        categoryPercentage: 0.6,
+        barPercentage: 0.2,
+        categoryPercentage: 0.4,
       },
     ],
   };
@@ -126,7 +127,7 @@ export default function AdminReports() {
   };
 
   const examChartData = {
-    labels: examPerformance.map((r) => `${r.semester}-${r.subject_name}`),
+    labels: examPerformance.map((r) => `${r.semester} Sem`),
     datasets: [
       {
         label: "Pass %",
@@ -142,6 +143,23 @@ export default function AdminReports() {
         backgroundColor: "#3b82f6",
       },
     ],
+  };
+
+  const handleSearch = (event) => {
+    const searchValue = event.target.value.trim().toUpperCase(); 
+    
+    if (searchValue && subjectDetails.length > 0) {
+        const filteredResults = subjectDetails.filter(s => 
+            // Check if roll_no contains the search value (partial match)
+            s.roll_no.toUpperCase().includes(searchValue) 
+        );
+        // Update the state for rendering
+        setDisplayData(filteredResults);
+        
+    } else {
+        // If search is empty or no original data, show the original list
+        setDisplayData(subjectDetails);
+    }
   };
 
   return (
@@ -211,18 +229,19 @@ export default function AdminReports() {
               <p>No backlog data available.</p>
             )}
           </section>
-
           {/* Subject-wise Attendance */}
           <section className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-semibold mb-4 text-indigo-700">
               Subject-wise Attendance
             </h2>
+
             <select
               className="border border-gray-300 rounded-md px-3 py-2 mb-4 focus:outline-none focus:ring focus:ring-blue-300"
               value={selectedSubject}
               onChange={(e) => {
-                setSelectedSubject(e.target.value);
-                fetchSubjectAttendance(e.target.value);
+                const v = e.target.value;
+                setSelectedSubject(v);
+                fetchSubjectAttendance(v);
               }}
             >
               <option value="">-- Select Subject --</option>
@@ -233,42 +252,66 @@ export default function AdminReports() {
               ))}
             </select>
 
-            {selectedSubject && subjectDetails.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-blue-100">
-                      <th className="p-2 text-left">Roll No</th>
-                      <th className="p-2 text-left">Student</th>
-                      <th className="p-2 text-left">Month</th>
-                      <th className="p-2 text-left">Attended</th>
-                      <th className="p-2 text-left">Total</th>
-                      <th className="p-2 text-left">%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {subjectDetails.map((s, i) => (
-                      <tr
-                        key={i}
-                        className={`border-b ${
-                          i % 2 === 0 ? "bg-white" : "bg-blue-50"
-                        }`}
-                      >
-                        <td className="p-2">{s.roll_no}</td>
-                        <td className="p-2">{s.student_name}</td>
-                        <td className="p-2">
-                          {new Date(s.month).toLocaleString("default", {
-                            month: "long",
-                          })}
-                        </td>
-                        <td className="p-2">{s.attended_classes}</td>
-                        <td className="p-2">{s.total_classes}</td>
-                        <td className="p-2 font-semibold">{s.percentage}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <input 
+                type="text" 
+                placeholder='Enter Roll Number' 
+                disabled={subjectDetails.length === 0}
+                onChange={handleSearch} 
+            />  
+
+            {loading && <p className="text-sm text-gray-500">Loading...</p>}
+
+            {selectedSubject && !loading && subjectDetails.length === 0 && (
+              <p className="text-sm text-gray-500">
+                No attendance records found for this subject.
+              </p>
+            )}
+
+           {selectedSubject && (
+                <div className="overflow-x-auto mt-4 border border-gray-200 rounded-lg">
+                    {displayData.length > 0 ? (
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 bg-gray-50 rounded-tl-lg">Roll No</th>
+                                    <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 bg-gray-50">Student</th>
+                                    <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 bg-gray-50">Month</th>
+                                    <th className="p-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 bg-gray-50">Attended</th>
+                                    <th className="p-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 bg-gray-50">Total</th>
+                                    <th className="p-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 bg-gray-50 rounded-tr-lg">Att. (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {displayData.map((s, i) => ( 
+                                    <tr 
+                                        key={`${s.roll_no}-${s.month}-${i}`}
+                                        className={`hover:bg-blue-50 transition duration-150`}
+                                    >
+                                        <td className="p-3 whitespace-nowrap text-sm font-medium text-gray-900">{s.roll_no}</td>
+                                        <td className="p-3 whitespace-nowrap text-sm text-gray-600">{s.student_name}</td>
+                                        <td className="p-3 whitespace-nowrap text-sm text-gray-600">
+                                            {new Date(s.month).toLocaleString('default', {
+                                                month: 'short',
+                                                year: 'numeric',
+                                            })}
+                                        </td>
+                                        <td className="p-3 whitespace-nowrap text-sm text-center">{s.attended_classes}</td>
+                                        <td className="p-3 whitespace-nowrap text-sm text-center">{s.total_classes}</td>
+                                        <td className="p-3 whitespace-nowrap text-sm font-bold text-center">
+                                            <span className={Number(s.attendance_percentage) < 75 ? 'text-red-600' : 'text-green-600'}>
+                                                {Number(s.attendance_percentage).toFixed(2)}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="p-4 text-center text-gray-500">
+                            {subjectDetails.length === 0 ? "No attendance records found for this subject." : "No matching records found for the roll number."}
+                        </p>
+                    )}
+                </div>
             )}
           </section>
         </div>
