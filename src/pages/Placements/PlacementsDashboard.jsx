@@ -40,7 +40,7 @@ export default function PlacementsDashboard() {
 
           {/* Add Company */}
           <Link
-            to="/placements/add-company"
+            to="/admin/placements/add-company"
             className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg p-6 border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1"
           >
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
@@ -56,7 +56,7 @@ export default function PlacementsDashboard() {
 
           {/* Manage Fees */}
           <Link
-            to="/placements/manage-fees"
+            to="/admin/placements/manage-fees"
             className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg p-6 border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1"
           >
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
@@ -72,7 +72,7 @@ export default function PlacementsDashboard() {
 
           {/* Register Student */}
           <Link
-            to="/placements/register-student"
+            to="/admin/placements/register-student"
             className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg p-6 border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1"
           >
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
@@ -88,7 +88,7 @@ export default function PlacementsDashboard() {
 
           {/* Update Status */}
           <Link
-            to="/placements/update-status"
+            to="/admin/placements/update-status"
             className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg p-6 border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1"
           >
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
