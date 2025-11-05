@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axiosInstance";
 import { useAuth } from "../context/AuthContext";
 
@@ -81,6 +81,11 @@ const Login = () => {
           </button>
         </div>
 
+        <div className="text-right">
+          <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
         <div>
           <p className="text-sm font-medium text-gray-600 mb-2">Login as:</p>
           <div className="flex justify-around">
