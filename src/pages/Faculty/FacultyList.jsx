@@ -43,7 +43,7 @@ export default function FacultyList() {
             👩‍🏫 Faculty Management
           </h2>
           <Link
-            to="/faculty/add"
+            to="/admin/faculty/add"
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg 
                      bg-gradient-to-r from-teal-500 to-blue-600 text-white font-semibold text-sm
                      shadow-md hover:from-teal-600 hover:to-blue-700 hover:shadow-lg 
