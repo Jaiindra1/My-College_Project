@@ -53,7 +53,7 @@ export default function NotificationsList() {
         <div className="flex justify-between mb-4">
           <h1 className="text-2xl font-bold">📢 Notifications</h1>
           <Link
-            to="/admin/Notifications-Add"
+            to="/admin/Notifications/Add"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
             + Add Notification
