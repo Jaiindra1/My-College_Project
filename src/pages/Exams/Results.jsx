@@ -59,6 +59,23 @@ export default function Results() {
 
   const results = resultData?.results || [];
 
+  // Group results by year, then by semester (e.g., { '1': { '1-1': [...], '1-2': [...] } })
+  const yearResults = results.reduce((acc, result) => {
+    const sem = result.sem || "Unknown";
+    // Assuming sem is like "1-1", "1-2", etc. The year is the first part.
+    const year = String(sem).split("-")[0];
+
+    if (!acc[year]) {
+      acc[year] = {};
+    }
+    if (!acc[year][sem]) {
+      acc[year][sem] = [];
+    }
+    acc[year][sem].push(result);
+    return acc;
+  }, {});
+
+
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
       {/* ✅ Header (Desktop) */}
@@ -161,11 +178,31 @@ export default function Results() {
           </button>
         </div>
       </div>
-
       {/* ✅ Main Content */}
       <main className="p-8 max-w-7xl mx-auto flex-1 w-full">
-        <h2 className="text-3xl font-bold mb-6">Exams & Results</h2>
-
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold">Exams & Results</h2>
+          <div className="flex items-center gap-8">
+            <div className="text-right">
+              <span className="text-base font-medium text-gray-500 dark:text-gray-400">CGPA</span>
+              <p className="text-4xl font-bold text-primary">
+                {resultData?.summary?.CGPA
+                  ? Number(resultData.summary.CGPA).toFixed(2)
+                  : "N/A"}
+              </p>
+            </div>
+            {resultData?.summary?.CGPA > 0 && (
+              <div className="text-right">
+                <span className="text-base font-medium text-gray-500 dark:text-gray-400">
+                  Equivalent Percentage
+                </span>
+                <p className="text-4xl font-bold text-primary">
+                  {((resultData.summary.CGPA - 0.75) * 10).toFixed(2)}%
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
         <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
           <nav className="flex space-x-8 -mb-px">
             <a
@@ -179,81 +216,101 @@ export default function Results() {
             </a>
           </nav>
         </div>
-
-        {/* ✅ Results Table */}
-        <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-sm mb-8">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold">
-              Semester {resultData?.semester || "-"} Results
-            </h3>
+        
+      
+         {/* ✅ Results Table */}
+        {Object.keys(yearResults).length === 0 ? (
+          <div className="text-center py-10 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+            No results available 📘
           </div>
+        ) : (
+          Object.entries(yearResults)
+            .sort(([yearA], [yearB]) => parseInt(yearA) - parseInt(yearB)) // Sort years numerically
+            .map(([year, semesterResults]) => (
+              <div key={year} className="mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {Object.entries(semesterResults)
+                    .sort(([semA], [semB]) => semA.localeCompare(semB)) // Sort semesters like "1-1", "1-2"
+                    .map(([semester, semResults]) => {
+                      // Find the SGPA for the current semester
+                      const semesterSummary = resultData?.summary?.SGPA.find(
+                        (s) => s.sem === semester
+                      );
+                      const sgpa = semesterSummary?.sgpa;
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {["Subject", "Marks", "Grade", "Status"].map((col) => (
-                    <th
-                      key={col}
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-                    >
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {results.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      className="text-center py-6 text-gray-500 dark:text-gray-400"
-                    >
-                      No results available 📘
-                    </td>
-                  </tr>
-                ) : (
-                  results.map((res, i) => (
-                    <tr key={i} className="hover:bg-primary/5 dark:hover:bg-primary/10 transition">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                        {res.subject_name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
-                        {res.grade}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
-                        {res.grade_point}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className="inline-flex items-center rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary dark:bg-primary/30">
-                          {res.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                      return (
+                        <div
+                        key={semester}
+                        className="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="p-6 flex justify-between items-center">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Semester {semester}
+                          </h3>
+                          {sgpa !== undefined && (
+                            <span className="text-lg font-bold text-primary">
+                              SGPA: {Number(sgpa).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-700">
+                              <tr>
+                                {["Subject", "Credits", "Grade", "Grade Point", "Status"].map(
+                                  (col) => (
+                                    <th
+                                      key={col}
+                                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                                    >
+                                      {col}
+                                    </th>
+                                  )
+                                )}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                              {semResults.map((res, i) => (
+                                <tr
+                                  key={i}
+                                  className="hover:bg-primary/5 dark:hover:bg-primary/10 transition"
+                                >
+                                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                                    {res.subject_name}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-300">
+                                    {res.credits}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
+                                    {res.grade}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
+                                    {res.grade_point}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm">
+                                    <span
+                                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                        res.grade === "F"
+                                          ? "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
+                                          : "bg-primary/20 text-primary dark:bg-primary/30"
+                                      }`}
+                                    >
+                                      {res.grade === "F" ? "Fail" : "Pass"}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      );
+                    })}
+                </div>
+              </div>
+            ))
+        )}
 
-        {/* ✅ Summary Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Semester Summary</h3>
-            <p className="text-sm text-gray-500">CGPA</p>
-            <p className="text-2xl font-bold text-primary">
-              {resultData?.summary?.CGPA || "N/A"}
-            </p>
-            <p className="mt-3 text-sm text-gray-500">SGPA</p>
-            <p className="text-2xl font-bold text-primary">
-              {resultData?.SGPA || "N/A"}
-            </p>
-            <button className="mt-6 w-full bg-primary text-white py-2 rounded-md font-medium hover:bg-primary/90 transition">
-              Download Report
-            </button>
-          </div>
-        </div>
       </main>
     </div>
   );
