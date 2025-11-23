@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import StudentSidebar from "../../components/StudentSidebar";
@@ -32,6 +32,7 @@ export default function AnalyticsDashboard() {
   const studentData =
     JSON.parse(localStorage.getItem("studentProfile")) ||
     JSON.parse(localStorage.getItem("studentData"));
+  const studentId = studentData?.student_id;
 
   // ✅ Logout Function
   const handleLogout = () => {
@@ -44,8 +45,14 @@ export default function AnalyticsDashboard() {
   // ✅ Fetch Analytics Data
   useEffect(() => {
     const fetchAnalytics = async () => {
+      if (!studentId) {
+        console.warn("No student ID found, skipping analytics fetch.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const { data: apiData } = await api.get("/analytics");
+        const { data: apiData } = await api.get(`/analytics/${studentId}`);
         setData({
           marksTrend: apiData?.marksTrend || initialData.marksTrend,
           attendanceVsGrades:
@@ -59,18 +66,61 @@ export default function AnalyticsDashboard() {
       }
     };
     fetchAnalytics();
-  }, []);
+  }, [studentId]);
 
-  // ✅ Prepare SVG chart safely
-  const marksHistory = data?.marksTrend?.history || [];
+  // ✅ Prepare SVG chart safely with dynamic semesters and scaling
+  // Prefer server-provided SGPA history, fall back to generic history
+  const rawMarks = Array.isArray(data?.marksTrend?.sgpaHistory)
+    ? data.marksTrend.sgpaHistory
+    : Array.isArray(data?.marksTrend?.history)
+    ? data.marksTrend.history
+    : [];
+
+  // Convert raw SGPA values to percentage (SGPA is on 0-10 scale)
+  const marksHistory = rawMarks.map((v) => {
+    const n = Number(v) || 0;
+    if (n <= 10) return Math.min(100, n * 10); // SGPA -> percent
+    if (n > 10 && n <= 100) return Math.min(100, n); // already percent
+    return Math.min(100, n);
+  });
+
+  // Semester labels can come from server (marksTrend.sems) or be generated
+  const semLabels = Array.isArray(data?.marksTrend?.sems)
+    ? data.marksTrend.sems
+    : marksHistory.map((_, i) => `Sem ${i + 1}`);
+
+  // Compute a dynamic scale so chart fits regardless of max value
+  const maxVal = Math.max(100, ...(marksHistory.length ? marksHistory : [100]));
+  const svgWidth = 472;
+  const svgHeight = 150;
+  const topPadding = 10;
+  const bottomPadding = 10;
+  const plotHeight = svgHeight - topPadding - bottomPadding;
+
+  // Tooltip state
+  const chartRef = useRef(null);
+  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, text: "", index: -1 });
+
+  // Prepare points (x,y) and keep SGPA/raw values for tooltip
+  const points = marksHistory.map((point, index, arr) => {
+    const x = (index / ((arr.length - 1) || 1)) * svgWidth;
+    const scaled = (Number(point) / maxVal) * plotHeight;
+    const y = topPadding + (plotHeight - scaled);
+    const raw = Number(rawMarks[index]);
+    const sgpa = raw && raw <= 10 ? raw : raw > 10 ? Number((raw / 10).toFixed(2)) : Number((point / 10).toFixed(2));
+    return { x, y, percent: Number(point), sgpa };
+  });
+
   const marksPath = marksHistory
     .map((point, index, arr) => {
-      const x = (index / ((arr.length - 1) || 1)) * 472;
-      const y = 150 - point;
-      return `${index === 0 ? "M" : "L"}${x} ${y}`;
+      const x = (index / ((arr.length - 1) || 1)) * svgWidth;
+      const scaled = (Number(point) / maxVal) * plotHeight;
+      const y = topPadding + (plotHeight - scaled);
+      return `${index === 0 ? 'M' : 'L'}${x} ${y}`;
     })
-    .join(" ");
-  const marksFillPath = marksHistory.length ? `${marksPath} V150 H0 Z` : "";
+    .join(' ');
+
+  const marksFillPath = marksHistory.length ? `${marksPath} V${svgHeight - bottomPadding} H0 Z` : '';
 
   if (loading)
     return (
@@ -174,15 +224,15 @@ export default function AnalyticsDashboard() {
           </div>
 
           {/* ANALYTICS CARDS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-4">
+          <div className="grid grid-cols-1 gap-8 p-4 lg:max-w-4xl mx-auto w-full">
             {/* 📈 MARKS TREND */}
             <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/30 rounded-lg p-6">
               <div className="flex flex-col gap-1">
                 <p className="text-base font-medium">Marks Trend</p>
-                <p className="text-4xl font-bold">{data.marksTrend.percentage}%</p>
+                <p className="text-4xl font-bold">{typeof data.marksTrend.percentage === 'number' ? data.marksTrend.percentage : Math.round(marksHistory[marksHistory.length-1] || 0)}%</p>
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-black/60 dark:text-white/60">
-                    Last 6 Semesters
+                    Last {semLabels.length} Semesters
                   </p>
                   <p className="text-sm font-medium text-primary">
                     +{data.marksTrend.change}%
@@ -190,23 +240,52 @@ export default function AnalyticsDashboard() {
                 </div>
               </div>
 
-              <div className="flex-1">
+              <div className="flex-1 relative">
                 <svg
-                  fill="none"
-                  height="100%"
-                  preserveAspectRatio="none"
-                  viewBox="0 0 472 150"
-                  width="100%"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d={marksFillPath} fill="url(#paint0_linear_marks)" />
-                  <path
-                    className="text-primary"
-                    d={marksPath}
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeWidth="3"
-                  />
+                    ref={chartRef}
+                    fill="none"
+                    height="100%"
+                    preserveAspectRatio="none"
+                    viewBox="0 0 472 150"
+                    width="100%"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d={marksFillPath} fill="url(#paint0_linear_marks)" />
+                    <path
+                      className="text-primary"
+                      d={marksPath}
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeWidth="3"
+                    />
+                    {/* interactive points for tooltip */}
+                    {points.map((p, i) => (
+                      <circle
+                        key={i}
+                        cx={p.x}
+                        cy={p.y}
+                        r={6}
+                        fill="transparent"
+                        stroke="transparent"
+                        onMouseEnter={(e) => {
+                          const rect = chartRef.current?.getBoundingClientRect();
+                          if (!rect) return;
+                          setTooltip({
+                            visible: true,
+                            x: e.clientX - rect.left + 8,
+                            y: e.clientY - rect.top - 30,
+                            text: `${semLabels[i] || `Sem ${i + 1}`} — SGPA: ${p.sgpa}`,
+                            index: i,
+                          });
+                        }}
+                        onMouseMove={(e) => {
+                          const rect = chartRef.current?.getBoundingClientRect();
+                          if (!rect) return;
+                          setTooltip((t) => ({ ...t, x: e.clientX - rect.left + 8, y: e.clientY - rect.top - 30 }));
+                        }}
+                        onMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, text: "", index: -1 })}
+                      />
+                    ))}
                   <defs>
                     <linearGradient
                       gradientUnits="userSpaceOnUse"
@@ -221,48 +300,22 @@ export default function AnalyticsDashboard() {
                     </linearGradient>
                   </defs>
                 </svg>
+                {/* Tooltip overlay (absolute within svg container) */}
+                {tooltip.visible && (
+                  <div
+                    className="pointer-events-none absolute z-50 bg-white dark:bg-[#0b1220] text-sm text-gray-900 dark:text-gray-100 px-3 py-2 rounded shadow-lg border border-black/5 dark:border-white/10"
+                    style={{ left: tooltip.x, top: tooltip.y, transform: 'translate(-50%, -100%)' }}
+                  >
+                    {tooltip.text}
+                  </div>
+                )}
               </div>
 
-              <div className="flex justify-around border-t border-primary/20 dark:border-primary/30 pt-4">
-                {["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Sem 6"].map((sem) => (
-                  <p key={sem} className="text-xs font-bold tracking-wider">
+              <div className="flex justify-around border-t border-primary/20 dark:border-primary/30 pt-4 flex-wrap">
+                {semLabels.map((sem, idx) => (
+                  <p key={idx} className="text-xs font-bold tracking-wider mx-2">
                     {sem}
                   </p>
-                ))}
-              </div>
-            </div>
-
-            {/* 📊 ATTENDANCE VS GRADES */}
-            <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/30 rounded-lg p-6">
-              <div className="flex flex-col gap-1">
-                <p className="text-base font-medium">Attendance vs Grades</p>
-                <p className="text-4xl font-bold">
-                  {data.attendanceVsGrades.averageGrade}%
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-black/60 dark:text-white/60">
-                    All Subjects
-                  </p>
-                  <p className="text-sm font-medium text-primary">
-                    +{data.attendanceVsGrades.change}%
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-5 gap-4 items-end justify-items-center flex-1 min-h-[200px] border-t border-primary/20 dark:border-primary/30 pt-4">
-                {data.attendanceVsGrades.subjects.map((subject, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center justify-end w-full h-full gap-2"
-                  >
-                    <div
-                      className="w-full bg-primary/20 dark:bg-primary/30 rounded-t"
-                      style={{ height: `${subject.grade}%` }}
-                    ></div>
-                    <p className="text-xs font-bold tracking-wider">
-                      {subject.name}
-                    </p>
-                  </div>
                 ))}
               </div>
             </div>
