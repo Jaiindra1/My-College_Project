@@ -28,7 +28,6 @@ export default function FacultySidebar({ isOpen = true, onClose = () => {} }) {
 
   const navLinks = [
     { label: "Dashboard", icon: "dashboard", href: "/faculty" },
-    { label: "Courses", icon: "menu_book", href: "/faculty/courses" },
     { label: "Attendance", icon: "calendar_today", href: "/faculty/FacultyAttendance" },
     { label: "Reports", icon: "analytics", href: "/faculty/FacultyReports" },
     { label: "Messages", icon: "chat", href: "/faculty/FacultyMessages" },
