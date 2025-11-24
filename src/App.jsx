@@ -7,6 +7,7 @@ import AdminRoutes from "./routes/AdminRoutes";
 import FacultyRoutes from "./routes/FacultyRoutes";
 import StudentRoutes from "./routes/StudentRoutes";
 import ResetPassword from "./pages/ResetPassword";
+import NotFound from "./pages/NotFound/Notfound";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="*" element={<NotFound />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
