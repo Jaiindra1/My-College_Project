@@ -9,7 +9,9 @@ import FacultyAnnouncementAdd from "../pages/Faculty/FacultyAnnouncementAdd";
 import FacultyAnnouncementPreview from "../pages/Faculty/FacultyAnnouncementPreview";
 import FacultyMessages from "../pages/Faculty/FacultyMessages";
 import FacultyTimetable from "../pages/Faculty/FacultyTimetable";
-import FacultyMarksEntry from "../pages/Faculty/FacultyMarksEntry" 
+import FacultyMarksEntry from "../pages/Faculty/FacultyMarksEntry";
+import Upcoming from "../pages/NotFound/Upcoming";
+
 
 export default function FacultyRoutes() {
   return (
@@ -28,7 +30,7 @@ export default function FacultyRoutes() {
       <Route path="FacultyAttendance" element={<FacultyAttendance />} />
       <Route path="FacultyAttendanceAnalytics" element={<FacultyAttendanceAnalytics />} />
       <Route path="FacultyProfile" element={<FacultyProfile />} />
-      <Route path="FacultyReports" element={<FacultyReports />} />
+      <Route path="FacultyReports" element={<Upcoming />} />
       <Route path="FacultyAnnouncementList" element={<FacultyAnnouncementList />} />
       <Route path="FacultyAnnouncementAdd" element={<FacultyAnnouncementAdd />} />
       <Route path="FacultyMessages" element={<FacultyMessages />} />
