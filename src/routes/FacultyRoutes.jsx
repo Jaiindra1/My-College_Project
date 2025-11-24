@@ -12,7 +12,6 @@ import FacultyTimetable from "../pages/Faculty/FacultyTimetable";
 import FacultyMarksEntry from "../pages/Faculty/FacultyMarksEntry";
 import Upcoming from "../pages/NotFound/Upcoming";
 
-
 export default function FacultyRoutes() {
   return (
     <Routes>
