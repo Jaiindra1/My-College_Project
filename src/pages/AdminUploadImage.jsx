@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../api/axiosInstance";
 import Sidebar from "../components/Sidebar";
+import api from "../api/axiosInstance";
 
 export default function AdminUploadImage() {
   const [form, setForm] = useState({ title: "", description: "" });
@@ -25,16 +25,13 @@ export default function AdminUploadImage() {
   const fetchExistingImages = async () => {
     try {
       setFetchingExisting(true);
-      const res = await api.get(
-        "/images/images/admin",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
 
-      // Backend returns an array from GET /images/admin
+      const res = await api.get("/images/images/admin", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setExistingImages(res.data || []);
     } catch (error) {
       console.error(
@@ -67,21 +64,17 @@ export default function AdminUploadImage() {
       formData.append("title", form.title);
       formData.append("description", form.description || "");
 
-      // 🔥 bulk upload: send all files under "images"
+      // bulk upload: send all files under "images"
       files.forEach((file) => {
         formData.append("images", file); // must match upload.array("images")
       });
 
-      const res = await axios.post(
-        "http://localhost:5000/api/images/images/admin",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await api.post("/api/images/images/admin", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log("Backend response:", res.data);
       setMessage(
@@ -140,7 +133,7 @@ export default function AdminUploadImage() {
             <input
               type="file"
               accept="image/*"
-              multiple // 🔥 allow bulk upload
+              multiple
               onChange={handleFileChange}
             />
             {files.length > 0 && (
@@ -168,11 +161,16 @@ export default function AdminUploadImage() {
                 Total images in database: <strong>{totalImages}</strong>
               </p>
 
-              {firstImage && firstImage.image_url && (
+              {firstImage && (
                 <div style={{ marginTop: 10 }}>
                   <p>Sample image (latest / first record):</p>
                   <img
-                    src={firstImage.image_url}
+                    src={
+                      firstImage.image_url &&
+                      firstImage.image_url.trim() !== ""
+                        ? firstImage.image_url
+                        : "/no-image.png" // local fallback, no via.placeholder.com
+                    }
                     alt={firstImage.title || "Uploaded image"}
                     style={{ maxWidth: 250, borderRadius: 8 }}
                   />
@@ -219,4 +217,3 @@ const styles = {
   },
   message: { marginTop: 15, fontSize: 16 },
 };
-
