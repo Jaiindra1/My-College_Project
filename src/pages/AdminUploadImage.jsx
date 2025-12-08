@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import axios from "axios";
+import api from "../api/axiosInstance";
 
 export default function AdminUploadImage() {
   const [form, setForm] = useState({ title: "", description: "" });
@@ -26,7 +26,7 @@ export default function AdminUploadImage() {
     try {
       setFetchingExisting(true);
 
-      const res = await axios.get("/images/images/admin", {
+      const res = await api.get("/images/images/admin", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -69,7 +69,7 @@ export default function AdminUploadImage() {
         formData.append("images", file); // must match upload.array("images")
       });
 
-      const res = await axios.post("/images/images/admin", formData, {
+      const res = await api.post("/images/images/admin", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -217,4 +217,5 @@ const styles = {
   },
   message: { marginTop: 15, fontSize: 16 },
 };
+
 
