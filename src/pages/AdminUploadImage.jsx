@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import Sidebar from "../components/Sidebar";
 
 export default function AdminUploadImage() {
@@ -25,8 +25,8 @@ export default function AdminUploadImage() {
   const fetchExistingImages = async () => {
     try {
       setFetchingExisting(true);
-      const res = await axios.get(
-        "http://localhost:5000/api/images/images/admin",
+      const res = await api.get(
+        "/images/images/admin",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -219,3 +219,4 @@ const styles = {
   },
   message: { marginTop: 15, fontSize: 16 },
 };
+
