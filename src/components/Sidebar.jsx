@@ -34,6 +34,7 @@ export default function Sidebar({ isOpen = true, onClose = () => {} }) {
     { label: "Fees", path: "/admin/fees", icon: "receipt_long" },
     { label: "Faculty", path: "/admin/faculty", icon: "school" },
     { label: "Placements", path: "/admin/placements", icon: "work" },
+    {label: "Upload Image",path: "/admin/upload-image",icon: "image"},
     { label: "Reports", path: "/admin/reports", icon: "analytics" },
     {
       label: "Notifications",
