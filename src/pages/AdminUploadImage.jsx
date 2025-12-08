@@ -69,7 +69,7 @@ export default function AdminUploadImage() {
         formData.append("images", file); // must match upload.array("images")
       });
 
-      const res = await api.post("/api/images/images/admin", formData, {
+      const res = await api.post("/images/images/admin", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
