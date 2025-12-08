@@ -69,13 +69,13 @@ export default function AdminUploadImage() {
         formData.append("images", file); // must match upload.array("images")
       });
 
-      const res = await api.post("/images/admin", formData, {
+      const res = await api.post("/images/images/admin", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
-
+      console.log("Backend response:", res);
       console.log("Backend response:", res.data);
       setMessage(
         files.length === 1
@@ -217,6 +217,7 @@ const styles = {
   },
   message: { marginTop: 15, fontSize: 16 },
 };
+
 
 
 
