@@ -158,7 +158,7 @@ const StudentDashboard = () => {
               <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/attendance">Attendance</a>
               <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/placements">Placements</a>
               <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/exams">Exams & Results</a>
-              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/analytics">Analytics</a>
+              <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/images">Images</a>
               <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/helpdesk">HelpDesk</a>
               <a className="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-primary transition-colors" href="/student/fee">Fee</a>
               <button
