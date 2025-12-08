@@ -28,6 +28,7 @@ import NotificationsList from "../pages/Notifications/NotificationsList";
 import AddNotification from "../pages/Notifications/AddNotification";
 import EditNotification from "../pages/Notifications/EditNotification";
 import PlacementsDashboard from "../pages/Placements/PlacementsDashboard";
+import AdminUploadImage from "../pages/AdminUploadImage";
 
 export default function AdminRoutes() {
   return (
@@ -61,6 +62,7 @@ export default function AdminRoutes() {
       <Route path="notifications" element={<NotificationsList />} />
       <Route path="notifications/add" element={<AddNotification />} />
       <Route path="notifications/edit/:id" element={<EditNotification />} />
+      <Route path="upload-image" element={<AdminUploadImage />} />
       <Route path="*" element={<h2 className="p-8 text-center">Page Not Found</h2>} />
     </Routes>
   );
