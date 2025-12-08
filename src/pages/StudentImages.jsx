@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axiosInstance";
 
 export default function StudentImages() {
   const [images, setImages] = useState([]);
@@ -13,8 +13,7 @@ export default function StudentImages() {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/images/images/student",
+        const res = await api.get("/images/images/student",
           {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           }
@@ -445,3 +444,4 @@ export default function StudentImages() {
     </div>
   );
 }
+
